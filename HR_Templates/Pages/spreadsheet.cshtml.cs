@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 namespace HR_Templates.Pages
 {
     [IgnoreAntiforgeryToken]
+    [Route("[action]")]
     public class SpreadsheetModel : PageModel
     {
         [BindProperty(SupportsGet = true)]
@@ -35,39 +36,14 @@ namespace HR_Templates.Pages
               
         public IActionResult OnPostDxSpreadsheetRequest()
         {
-             return SpreadsheetRequestProcessor.GetResponse(HttpContext);
-
-            //var result = SpreadsheetRequestProcessor.GetResponse(HttpContext);
-
-            //string command = HttpContext.Request.Form["DXCallbackArgument"];
-
-            //if (command == "SAVE_DOC")
-            //{
-            //    string folder = DirectoryManagmentUtils.GetSessionFolderKey(HttpContext);
-
-            //    string sourcePath = Path.Combine(
-            //        Directory.GetCurrentDirectory(),
-            //        "App_Data",
-            //        folder,
-            //        "Solicitud de vacaciones.xlsx"
-            //    );
-
-            //    string destPath = Path.Combine(
-            //        Directory.GetCurrentDirectory(),
-            //        "wwwroot",
-            //        "Docs",
-            //        "Solicitud de vacaciones.xlsx"
-            //    );
-
-            //    if (System.IO.File.Exists(sourcePath))
-            //    {
-            //        System.IO.File.Copy(sourcePath, destPath, true);
-            //    }
-            //}
-
-            //return result;
-
+             return SpreadsheetRequestProcessor.GetResponse(HttpContext);           
         }
+
+        //public IActionResult DxDocumentRequest()
+        //{
+        //    return SpreadsheetRequestProcessor.GetResponse(HttpContext);
+        //}
+
 
         public IActionResult OnPostSaveSignature([FromBody] SignatureRequest request)
         {
@@ -194,6 +170,12 @@ namespace HR_Templates.Pages
 
 
             return new JsonResult(new { success = true });
+        }
+
+
+        public IActionResult OnPostDxSpreadsheet()
+        {
+            return SpreadsheetRequestProcessor.GetResponse(HttpContext); 
         }
 
 

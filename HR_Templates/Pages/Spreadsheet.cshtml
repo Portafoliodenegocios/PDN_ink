@@ -31,8 +31,6 @@
 <link href="~/hr/lib/devexpress-aspnetcore-spreadsheet/dist/dx-aspnetcore-spreadsheet.css" rel="stylesheet" />
 <script src="~/hr/lib/devexpress-aspnetcore-spreadsheet/dist/dx-aspnetcore-spreadsheet.js"></script> 
 
-
-
 @* <button type="button" class="btn btn-success"
         onclick="openSignaturePopup('Documento1')">
     Enviar a Firma
@@ -44,7 +42,7 @@
 
  <script> 
     function onCustomCommandExecuted(s, e) {
-    console.log("Comando:", e.commandName);
+    // console.log("Comando:", e.commandName);
     switch (e.commandName) {
     case 'save':
       openSignaturePopup('Documento1')
@@ -89,11 +87,11 @@ Html.DevExpress()
          .Tabs(tabs => {
  tabs.Clear();
  tabs.Add()
-   .Title("Firma")
+   .Title("✍️")
    .Items(items =>
  {
      items.AddButton()
-       .Text("Enviar documento a firma")
+       .Text("Firmar documento")
        .CommandName("save")
       .ShowText(true)
             .Icon("send");
@@ -104,20 +102,15 @@ Html.DevExpress()
          {
  events.OnCustomCommandExecuted("onCustomCommandExecuted");
          })
-         @* .ConfirmOnLosingChanges(confirm => confirm.Enabled(false))
+        .ConfirmOnLosingChanges(confirm => confirm.Enabled(true))
+        .DocumentRequestHandlerUrl("Spreadsheet?handler=DxSpreadsheetRequest") 
             
-            .DocumentRequestHandlerUrl(Url.Action("DxDocumentRequest"))  *@
          
 .Open(documentPath)
         )
  
          
 <script type="text/javascript">
-        
-
-   
-       
-   
         
     function OpenModalSign()
     {
@@ -230,11 +223,6 @@ Html.DevExpress()
 
       
 </script>
-
-
-   
-   
-   
 
 
 
