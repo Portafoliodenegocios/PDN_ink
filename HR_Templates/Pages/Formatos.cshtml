@@ -1,0 +1,89 @@
+﻿@page
+@model HR_Templates.Pages.FormatosModel
+@{
+    Layout = null;
+}
+<link href="~/hr/css/styleFormatos.css" rel="stylesheet" />
+
+<div class="container">
+    <div class="card">
+
+        <div class="title">
+            📄 Selección de Formatos
+        </div>
+
+        <form method="post">
+                     
+
+            <div class="form-layout">
+
+                <div class="list-container">
+
+                    <input type="text" id="search" placeholder="Buscar formato..." />
+
+                    <div class="list" id="formatList">
+                        @foreach (var item in Model.Formatos)
+                        {
+                          <div class="list-item"  data-value="@item" >
+                               @item
+                          </div>
+                        }
+                    </div>
+                </div>
+                                
+                <button class="btn-submit" onclick="enviar()">
+                    <i class="fa-solid fa-paper-plane"></i>
+                      Enviar 🚀
+                    </button>
+            </div>
+                
+
+            <input type="hidden" id="selectedValue" name="FormatoSeleccionado" />
+
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="error-box">
+                    @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                    {
+                        <div>@error.ErrorMessage</div>
+                    }
+                </div>
+            }
+
+        </form>
+
+    </div>
+</div>
+
+<script id="m1k3c9">
+    const items = document.querySelectorAll(".list-item");
+    const hidden = document.getElementById("selectedValue");
+    const search = document.getElementById("search");
+
+    items.forEach(item => {
+        item.addEventListener("click", () => {
+        
+            items.forEach(i => i.classList.remove("active"));      
+            item.classList.add("active");        
+            hidden.value = item.dataset.value;
+
+        });
+    });
+
+    search.addEventListener("keyup", () => {
+        const text = search.value.toLowerCase();
+
+        items.forEach(item => {
+            const visible = item.innerText.toLowerCase().includes(text);
+            item.style.display = visible ? "block" : "none";
+        });
+    });
+
+    function enviar() {
+        if (!hidden.value) {
+            alert("Selecciona un formato");
+            return;
+        }
+        document.forms[0].submit();
+    }
+</script>

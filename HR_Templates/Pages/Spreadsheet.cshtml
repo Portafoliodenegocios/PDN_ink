@@ -1,0 +1,255 @@
+﻿@page "/Spreadsheet"
+@model HR_Templates.Pages.SpreadsheetModel
+@using DevExpress.AspNetCore;
+@inject Microsoft.AspNetCore.Hosting.IWebHostEnvironment env
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
+@using DevExpress.Spreadsheet
+@using Microsoft.AspNetCore.Http.Features
+@using System.IO
+@{
+    var documentPath = string.Empty;
+    if (@ViewData["NameTemplate"] != null)
+    {
+      documentPath = System.IO.Path.Combine(
+                              env.ContentRootPath,
+                              DirectoryManagmentUtils.GetDocumentSampleFolderPath(HttpContext), 
+                              @ViewData["NameTemplate"].ToString());
+    }
+
+}
+
+
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- DevExtreme -->
+
+<link href="~/hr/lib/devextreme-dist/css/dx.light.css" rel="stylesheet" />
+<script src="~/hr/lib/devextreme-dist/js/dx.all.js"></script> 
+<link rel="stylesheet" href="~/hr/lib/bootstrap/dist/css/bootstrap.min.css" />
+
+<link href="~/hr/lib/devexpress-aspnetcore-spreadsheet/dist/dx-aspnetcore-spreadsheet.css" rel="stylesheet" />
+<script src="~/hr/lib/devexpress-aspnetcore-spreadsheet/dist/dx-aspnetcore-spreadsheet.js"></script> 
+
+
+
+@* <button type="button" class="btn btn-success"
+        onclick="openSignaturePopup('Documento1')">
+    Enviar a Firma
+</button>  *@
+
+<form id="formExport" method="post">
+    <input name="SpreadsheetWorkSessionId" type="hidden" value="" />
+</form>
+
+ <script> 
+    function onCustomCommandExecuted(s, e) {
+    console.log("Comando:", e.commandName);
+    switch (e.commandName) {
+    case 'save':
+      openSignaturePopup('Documento1')
+        // Guardar();  
+        break;
+    case 'download':
+    var spreadsheetState = spreadsheet.getSpreadsheetState();
+    $("#formExport").attr('action', '@Url.Action("RibbonDownloadXlsx")');
+    $("input[name='SpreadsheetWorkSessionId']").val(spreadsheetState.SpreadsheetWorkSessionId);
+    $("#formExport").submit();
+    break;
+    }
+    }
+
+    function Guardar()
+    {
+      var spreadsheet = ASPxClientControl.GetControlCollection().GetByName("spreadsheet");
+      var spreadsheetState = spreadsheet.GetSpreadsheetState();
+    
+        console.log(spreadsheetState);
+        console.log('save_');
+    fetch('/Spreadsheet?handler=RibbonSaveToFile', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ spreadsheetState: spreadsheetState })
+    })
+    .then(res => console.log("Guardado OK"))
+    .catch(err => console.error(err));
+    }
+</script>
+ 
+@(
+Html.DevExpress()
+    .Spreadsheet("spreadsheet")
+    .Width("100%")
+    .Height("800px")
+    .DocumentRequestHandlerUrl(Url.Page(pageName: null, pageHandler: "DxSpreadsheetRequest")) 
+    .Ribbon(ribbon => ribbon
+         .Visible(true)
+         .Tabs(tabs => {
+ tabs.Clear();
+ tabs.Add()
+   .Title("Firma")
+   .Items(items =>
+ {
+     items.AddButton()
+       .Text("Enviar documento a firma")
+       .CommandName("save")
+      .ShowText(true)
+            .Icon("send");
+ });
+         })
+         )
+         .ClientSideEvents(events =>
+         {
+ events.OnCustomCommandExecuted("onCustomCommandExecuted");
+         })
+         @* .ConfirmOnLosingChanges(confirm => confirm.Enabled(false))
+            
+            .DocumentRequestHandlerUrl(Url.Action("DxDocumentRequest"))  *@
+         
+.Open(documentPath)
+        )
+ 
+         
+<script type="text/javascript">
+        
+
+   
+       
+   
+        
+    function OpenModalSign()
+    {
+    document.getElementById("signatureModal").style.display = "flex";
+    }
+    function CloseModalSign()
+    {
+    const modalEl = document.getElementById('signatureModal');
+    const modal = bootstrap.Modal.getInstance(modalEl);
+    if (modal) modal.hide();
+    // document.getElementById("signatureModal").style.display = "none";
+    }
+
+       
+     
+    function initSignaturePad() {
+
+    const canvas = document.getElementById('Lienzo');
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    let drawing = false;
+
+    canvas.addEventListener('mousedown', e =>
+    {
+    drawing = true;
+    ctx.beginPath();
+    ctx.moveTo(e.offsetX, e.offsetY);
+    });
+
+    canvas.addEventListener('mousemove', e =>
+    {
+    if (!drawing) return;
+    ctx.lineTo(e.offsetX, e.offsetY);
+    ctx.stroke();
+    });
+
+    canvas.addEventListener('mouseup', () => drawing = false);
+    canvas.addEventListener('mouseleave', () => drawing = false);
+
+    window.clearPad = function () {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    };
+
+    window.saveSignature = function ()
+    {
+
+    const canvas = document.getElementById("Lienzo");
+    const imageData = canvas.toDataURL("image/png");
+    const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+    const documentName = document.getElementById("documentName").value;
+
+    fetch("/Spreadsheet?handler=SaveSignature", {
+    method: "POST",
+    headers: {
+    "Content-Type": "application/json",
+    "RequestVerificationToken": token
+    },
+    body: JSON.stringify({
+    imageData: imageData,
+    documentName: documentName
+    })
+    })
+    .then(async res => {
+    if (!res.ok) {
+    const text = await res.text();
+    console.error("Error servidor:", text);
+    throw new Error("Error en request");
+    }
+
+    return res.json();
+    })
+    .then(data => {
+    if (data.success) {
+         Guardar();
+    alert('Documento enviado correctamente!!');
+    CloseModalSign();
+    } else {
+    alert('Error');
+    }
+    })
+    .catch(err => {
+    console.error(err);
+    alert("Falló el guardado");
+    });
+    };
+                                       
+
+    }
+
+    async function openSignaturePopup(documentName)
+    {
+                                   
+    const url = '_Signature?documentName=' + encodeURIComponent(documentName);
+    alert(url);
+     alert('qui entro');
+    const response = await fetch(url);
+    const html = await response.text();
+
+    document.getElementById("signatureContainer").innerHTML = html;
+
+    var modal = new bootstrap.Modal(document.getElementById('signatureModal'));
+    modal.show();
+
+    setTimeout(() => {
+    initSignaturePad();
+    }, 200);
+    }
+
+
+      
+</script>
+
+
+   
+   
+   
+
+
+
+<!-- MODAL DE FIRMA -->
+<div class="modal fade" id="signatureModal" tabindex="-1">
+    @*  <div class="modal-dialog modal-lg"> *@
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"> ✍ Firmar Documento</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="signatureContainer">
+                Cargando...
+            </div>
+        </div>
+    </div>
+</div>

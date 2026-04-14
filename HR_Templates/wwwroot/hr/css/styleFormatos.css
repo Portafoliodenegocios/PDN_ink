@@ -1,0 +1,93 @@
+﻿.form-layout {
+    display: flex;
+    gap: 30px;
+    height: 90%;
+    width: 80%;
+    padding:10%; 
+    padding-top : 10px;
+}
+
+/* CONTENEDOR */
+.list-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+/* BUSCADOR */
+#search {
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid #d0d7de;
+    margin-bottom: 10px;
+    font-size: 14px;
+}
+
+/* LISTA */
+.list {
+    flex: 1;
+    overflow-y: auto;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 10px;
+    background: #fafbfc;
+}
+
+/* ITEM */
+.list-item {
+    padding: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+    /* HOVER */
+    .list-item:hover {
+        background: #e6f0ff;
+    }
+
+    /* SELECCIONADO */
+    .list-item.active {
+        background: #0078D7;
+        color: white;
+        font-weight: 500;
+    }
+
+/* BOTÓN */
+.btn-submit {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px 28px;
+    height: auto;
+    background: linear-gradient(135deg, #0078D7, #005fa3);
+    color: #fff;
+    font-size: 15px;
+    font-weight: 600;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    box-shadow: 0 6px 15px rgba(0, 120, 215, 0.25);
+    height :20px;
+}
+
+    /* Hover */
+    .btn-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(0, 120, 215, 0.35);
+    }
+
+    /* Click */
+    .btn-submit:active {
+        transform: scale(0.98);
+        box-shadow: 0 4px 10px rgba(0, 120, 215, 0.2);
+    }
+
+    /* Deshabilitado */
+    .btn-submit:disabled {
+        background: #cbd5e1;
+        cursor: not-allowed;
+        box-shadow: none;
+    }
