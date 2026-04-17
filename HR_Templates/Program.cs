@@ -1,5 +1,6 @@
 using DevExpress.AspNetCore;
 using DevExpress.Web.Office;
+using Microsoft.AspNetCore.StaticFiles;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -53,7 +54,17 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseStaticFiles();
+//app.UseStaticFiles();
+
+// Example for Program.cs in ASP.NET Core
+var provider = new FileExtensionContentTypeProvider();
+provider.Mappings[".ftl"] = "text/plain"; // Map .ftl as plain text
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    ContentTypeProvider = provider
+});
+
 
 app.UseDevExpressControls();
 

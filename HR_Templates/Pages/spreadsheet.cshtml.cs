@@ -7,6 +7,7 @@ using DevExpress.Spreadsheet;
 using DevExpress.Web;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using HR_Templates.Models;
 
 namespace HR_Templates.Pages
 {
@@ -23,111 +24,50 @@ namespace HR_Templates.Pages
         public void OnGet()
         {
             ViewData["NameTemplate"]  = $"{Name}.{Extension}";
-            
-        }
-      
+            ViewData["NameFile"] = $"{Name}";
+        }      
       
         public IActionResult OnGetDxSpreadsheetRequest()
         {
-            System.IO.File.WriteAllText("C:\\temp\\SI_ENTRA_GET.txt", "OK");
-            return SpreadsheetRequestProcessor.GetResponse(HttpContext);
-            
-        }
-              
+            //System.IO.File.WriteAllText("C:\\temp\\SI_ENTRA_GET.txt", "OK");
+            return SpreadsheetRequestProcessor.GetResponse(HttpContext);            
+        }              
         public IActionResult OnPostDxSpreadsheetRequest()
         {
              return SpreadsheetRequestProcessor.GetResponse(HttpContext);           
         }
-
-        //public IActionResult DxDocumentRequest()
-        //{
-        //    return SpreadsheetRequestProcessor.GetResponse(HttpContext);
-        //}
-
-
         public IActionResult OnPostSaveSignature([FromBody] SignatureRequest request)
         {
             if (string.IsNullOrEmpty(request.ImageData))
                 return BadRequest("No signature received.");
             var base64Data = request.ImageData.Replace("data:image/png;base64,", "");
             var bytes = Convert.FromBase64String(base64Data);
-            var path = Path.Combine("wwwroot/signatures", $"sign_{request.DocumentName}.png");
+            var path = Path.Combine("wwwroot/signatures", $"{request.DocumentName}.png");
             System.IO.File.WriteAllBytes(path, bytes);
-
             return new JsonResult(new { success = true });
         }
-
-        public IActionResult OnGetExportToPdf( )
-        {
-        
-        var fullPath = Path.Combine( Directory.GetCurrentDirectory(),   
-                                     DirectoryManagmentUtils.GetDocumentSampleFolderPath(HttpContext),
-                                    "Solicitud de vacaciones.xlsx"
-                                   );
-
-            if (!System.IO.File.Exists(fullPath))
-            return NotFound();
-
-        using (Workbook workbook = new Workbook())
-        {
-            workbook.LoadDocument(fullPath);
-
-            using (MemoryStream pdfStream = new MemoryStream())
-            {
-                workbook.ExportToPdf(pdfStream);
-                pdfStream.Position = 0;
-
-                return File(pdfStream.ToArray(), "application/pdf", "Resultado.pdf");
-            }
-        }
-    }
-
-        public void SaveDocument(SpreadsheetClientState spreadsheetState)
-        {
-            var spreadsheet = SpreadsheetRequestProcessor.GetSpreadsheetFromState(spreadsheetState);
-
-            // Saves an active document back to the file you opened it from
-            spreadsheet.Save();
-
-            var path = Path.Combine("wwwroot/signatures", $"Excelupdate.png");
-            // Saves a copy of an active document to a file in the server's file system.
-            spreadsheet.SaveCopy(path);
-
-            // Saves a copy of an active document to a byte array
-            byte[] documentContent = spreadsheet.SaveCopy(DocumentFormat.Xlsx);
-
-            // Saves a copy of an active document to a stream
-            var stream = new MemoryStream();
-            spreadsheet.SaveCopy(stream, DocumentFormat.Xlsx);
-        }
-      
+       
         [IgnoreAntiforgeryToken]
         public IActionResult OnPostRibbonSaveToFile([FromBody] SpreadsheetStateRequest request)
         {
 
+            
             if (request?.SpreadsheetState == null)
                 return BadRequest("No se recibió el estado");
 
-            var spreadsheet = SpreadsheetRequestProcessor
-                .GetSpreadsheetFromState(request.SpreadsheetState);
-
+            var spreadsheet = SpreadsheetRequestProcessor.GetSpreadsheetFromState(request.SpreadsheetState);
             spreadsheet.Save(); 
+
             var excelStream = new MemoryStream();
             spreadsheet.SaveCopy(excelStream, DocumentFormat.Xlsx);
             excelStream.Position = 0;
-            var path = Path.Combine("wwwroot", "signatures", "ExcelGenerado.xlsx");          
+            var path = Path.Combine("wwwroot", "signatures", $"{request.NameFile}.xlsx");          
             Directory.CreateDirectory(Path.Combine("wwwroot", "signatures"));
-
             System.IO.File.WriteAllBytes(path, excelStream.ToArray());
 
-
-
-
-            var SignFile = Path.Combine("wwwroot/signatures", "sign_Documento1.png");
-            var originalPdf = Path.Combine("wwwroot/signatures", "Excelupdate.pdf");
-            string signedPdf = System.IO.Path.Combine(Path.Combine("wwwroot/signatures", "Document_sign.pdf"));
-
-
+            var SignFile = Path.Combine("wwwroot/signatures", $"{request.NameFile}.png");
+            var originalPdf = Path.Combine("wwwroot/signatures", $"{request.NameFile}.pdf");
+            string signedPdf = System.IO.Path.Combine(Path.Combine("wwwroot/signatures", $"{request.NameFile}_sign.pdf"));
             excelStream.Position = 0;
 
             using (Workbook workbook = new Workbook())
@@ -140,9 +80,6 @@ namespace HR_Templates.Pages
                     System.IO.File.WriteAllBytes(originalPdf, pdfStream.ToArray());
                 }
             }
-
-
-
 
             using (var reader = new iTextSharp.text.pdf.PdfReader(originalPdf))
             using (var fs = new FileStream(signedPdf, FileMode.Create))
@@ -158,7 +95,6 @@ namespace HR_Templates.Pages
 
                 var content = stamper.GetOverContent(1);
                 content.AddImage(Imgsign);
-
                 stamper.FormFlattening = true;
 
                 stamper.Close();
@@ -179,6 +115,52 @@ namespace HR_Templates.Pages
         }
 
 
+        /////***************************************
+        ///
+        //public void Save_Document(SpreadsheetClientState spreadsheetState)
+        //{
+        //    var spreadsheet = SpreadsheetRequestProcessor.GetSpreadsheetFromState(spreadsheetState);
+
+
+        //    spreadsheet.Save();
+
+
+
+        //    var path = Path.Combine("wwwroot/signatures", $"Excelupdate.png");
+        //    spreadsheet.SaveCopy(path);
+
+        //    byte[] documentContent = spreadsheet.SaveCopy(DocumentFormat.Xlsx);
+        //    var stream = new MemoryStream();
+        //    spreadsheet.SaveCopy(stream, DocumentFormat.Xlsx);
+        //}
+
+
+        //public IActionResult OnGetExportToPdf()
+        //{
+
+        //    var fullPath = Path.Combine(Directory.GetCurrentDirectory(),
+        //                                 DirectoryManagmentUtils.GetDocumentSampleFolderPath(HttpContext),
+        //                                "Solicitud de vacaciones.xlsx"
+        //                               );
+
+        //    if (!System.IO.File.Exists(fullPath))
+        //        return NotFound();
+
+        //    using (Workbook workbook = new Workbook())
+        //    {
+        //        workbook.LoadDocument(fullPath);
+
+        //        using (MemoryStream pdfStream = new MemoryStream())
+        //        {
+        //            workbook.ExportToPdf(pdfStream);
+        //            pdfStream.Position = 0;
+
+        //            return File(pdfStream.ToArray(), "application/pdf", "Resultado.pdf");
+        //        }
+        //    }
+        //}
+
+
     }
 
 
@@ -187,7 +169,3 @@ namespace HR_Templates.Pages
 
 }
 
-public class SpreadsheetStateRequest
-{
-    public DevExpress.AspNetCore.Spreadsheet.SpreadsheetClientState SpreadsheetState { get; set; }
-}

@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Org.BouncyCastle.Asn1.X509;
+//using Org.BouncyCastle.Asn1.X509;
 
 namespace HR_Templates.Pages
 {
@@ -83,7 +83,8 @@ namespace HR_Templates.Pages
                 return RedirectToPage("Spreadsheet", new { name = FormatoSeleccionado, Extension = "xls" });
             }
             else//Tomar desde el reporting service el reporte 
-                return RedirectToPage("RichEdit", new { name = FormatoSeleccionado });
+                return RedirectToPage("VisorReport", new { name = FormatoSeleccionado });
+            //return RedirectToPage("ReportViewer", new { name = FormatoSeleccionado });
         }
 
         private List<string> ObtenerFormatos()

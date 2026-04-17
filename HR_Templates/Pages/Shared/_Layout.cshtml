@@ -4,9 +4,31 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - HR_Templates</title>
+
     <link rel="stylesheet" href="~/hr//lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/hr/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/HR_Templates.styles.css" asp-append-version="true" />
+
+ @*    <link rel="stylesheet" href="~/hr/css/boldreports/bold.reports.all.min.css" />
+    <script src="~/hr/js/boldreports/ej2-base.min.js"></script>
+    <script src="~/hr/js/boldreports/ej2-data.min.js"> </script>
+    <script src="~/hr/js/boldreports/ej2-pdf-export.min.js"> </script>
+    <script src="~/hr/js/boldreports/ej2-svg-base.min.js"> </script>
+    <script src="~/hr/js/boldreports/jquery-1.10.2.min.js"> </script> *@
+
+    <!-- Report Viewer component styles -->
+    <link href="https://cdn.boldreports.com/13.1.26/content/v2.0/tailwind-light/bold.report-viewer.min.css" rel="stylesheet" />
+
+    <!-- Report Viewer component dependent script -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdn.boldreports.com/13.1.26/scripts/v2.0/common/bold.reports.common.min.js"></script>
+    <script src="https://cdn.boldreports.com/13.1.26/scripts/v2.0/common/bold.reports.widgets.min.js"></script>
+
+    <!-- Report Viewer component script -->
+    <script src="https://cdn.boldreports.com/13.1.26/scripts/v2.0/bold.report-viewer.min.js"></script>
+
+
+
 </head>
 <body>
     <header>
@@ -17,16 +39,7 @@
                         aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
-                @* <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-page="/Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-page="/Privacy">Privacy</a>
-                        </li>
-                    </ul>
-                </div> *@
+              
             </div>
         </nav>
     </header>
@@ -42,10 +55,14 @@
         </div>
     </footer>
 
-    <script src="~/hr/lib/jquery/dist/jquery.min.js"></script>
+@*     <script src="~/hr/lib/jquery/dist/jquery.min.js"></script> *@
     <script src="~/hr/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/hr/js/site.js" asp-append-version="true"></script>
 
     @await RenderSectionAsync("Scripts", required: false)
+
+    <!-- Bold Reports<sup>®</sup> script manager -->
+    <bold-script-manager></bold-script-manager>
+
 </body>
 </html>

@@ -1,0 +1,300 @@
+﻿@page
+@model HR_Templates.Pages.VisorReportModel
+@Html.AntiForgeryToken()
+@inject Microsoft.AspNetCore.Hosting.IWebHostEnvironment env
+@{
+    var documentPath = string.Empty;
+    var NameFileout = string.Empty;
+    var context_ = HttpContext;
+
+
+    Layout = null;
+
+    
+    if (@ViewData["NameTemplate"] != null)
+    {
+
+        const string Z = "NameTemplate";
+        string NameFilext = @ViewData[Z].ToString();
+
+        documentPath = System.IO.Path.Combine(
+                                env.ContentRootPath,
+                                DirectoryManagmentUtils.GetDocumentSampleFolderPath(HttpContext),
+                                NameFilext
+                                );
+
+
+    }
+
+    if (@ViewData["NameFile"] != null)
+    {
+        const string V = "NameFile";
+        NameFileout = @ViewData[V]?.ToString();
+    }
+
+}
+}
+
+   
+<script src="~/hr/js/signature.js"></script>
+<script src="~/hr/js/api.js"></script>
+
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <title>Visor de Reporte</title>
+    <link href="~/hr/css/Sign.css" rel="stylesheet" type="text/css" runat="server" />
+    <style>
+
+            body {
+                margin: 0;
+                font-family: "Segoe UI", Arial, sans-serif;
+                background: #f4f6f9;
+                display: flex;
+                flex-direction: column;
+                height: 100vh;
+            }
+       
+            .viewer-header {
+                background: #ffffff;
+                border-bottom: 1px solid #e5e5e5;
+                padding: 10px 20px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            }
+
+            .viewer-title {
+                font-size: 16px;
+                font-weight: 600;
+                color: #333;
+            }
+
+            .viewer-actions {
+                display: flex;
+                gap: 10px;
+            }
+
+            .btn {
+                border: none;
+                padding: 8px 14px;
+                font-size: 14px;
+                border-radius: 5px;
+                cursor: pointer;
+                transition: all .2s;
+            }
+
+            .btn-primary {
+                background: #2f7df6;
+                color: white;
+            }
+
+                .btn-primary:hover {
+                    background: #1f66d1;
+                }
+
+            .btn-secondary {
+                background: #FF0000;
+                color: white;
+            }
+
+                .btn-secondary:hover {
+                    background: #FF0000;
+                }
+
+            /* VISOR */
+            .viewer-container {
+                flex: 1;
+                padding: 15px;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+
+            .viewer-frame {
+                width: 100%;
+                height: 100%;
+                border: none;
+                background: white;
+                box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+                border-radius: 6px;
+            }
+
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+</head>
+
+<body>
+    @* <input type="hidden" asp-for="rptDocumentName" value="@ViewData["rptDocumentName"].ToString()" /> *@
+    @*    <input type="hidden" asp-for="RptUserName" />*@
+    <!-- HEADER -->
+    <div class="viewer-header">
+
+        <div class="viewer-title">
+            📄 Visor ©️Pdn
+        </div>
+
+        <div class="viewer-actions">
+            <button id="btnFirmar" onclick="OpenModalSign(); return false;" class="btn btn-primary">
+                ✍ Firmar Documento
+            </button>
+
+            <button class="btn btn-secondary" onclick="window.close()">
+                Cerrar
+            </button>
+        </div>
+
+    </div>
+
+    <!-- VISOR PDF -->
+    <iframe id="pdfViewer" class="viewer-frame">
+    </iframe>
+
+
+
+    <!-- MODAL FIRMA -->
+    <div id="modalSign" class="modal-overlay">
+        <div class="modal-box">
+            <canvas id="Lienzo"
+                    width="420"
+                    height="200"
+                    class="canvas-signature"></canvas>
+            <div class="modal-buttons">
+                <button type="button" onclick="clearPad()" class="btn-danger">
+                    🧹 Limpiar
+                </button>
+                <button type="button" onclick="saveSignature()" class="btn-success">
+                    ✔  Firma
+                </button>
+                <button type="button" onclick="CloseModalSign()" class="btn-secondary">
+                    ❎ Cancelar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+
+        const NameFile_ = @Html.Raw(Json.Serialize(NameFileout));
+
+    
+        document.addEventListener("DOMContentLoaded", function () {
+
+        const data = { CreditId:"97812", ReportId: "1",   ReportName:NameFile_ };
+
+        fetch('/VisorReport?handler=GenerateReport' , {
+        method: 'POST',
+        headers: {
+        'Content-Type': 'application/json',
+        "RequestVerificationToken": document.querySelector('input[name="__RequestVerificationToken"]').value
+        },
+        body: JSON.stringify(data)
+        })
+        .then(res => res.json())
+        .then(data => {
+
+        // alert("entro");
+        if (!data.success) {
+        alert("Error al generar reporte");
+        return;
+        }
+
+        console.log("PDF URL:", data.url);
+
+      
+        document.getElementById("pdfViewer").src =
+        "/pdfjs/web/viewer.html?file=" + encodeURIComponent(data.url);
+        })
+        .catch(err => alert('Error' + err));
+        });
+
+        function OpenModalSign()
+        {
+        document.getElementById("modalSign").style.display = "flex";
+        }
+
+        function CloseModalSign()
+        {
+        document.getElementById("modalSign").style.display = "none";
+        }
+
+        const canvas = document.getElementById('Lienzo');
+        const ctx = canvas.getContext('2d');
+        let drawing = false;
+
+        ctx.lineWidth = 2;
+        ctx.lineCap = "round";
+
+        canvas.addEventListener('mousedown', e => {
+        drawing = true;
+        ctx.beginPath();
+        ctx.moveTo(e.offsetX, e.offsetY);
+        });
+
+        canvas.addEventListener('mousemove', e => {
+        if (!drawing) return;
+        ctx.lineTo(e.offsetX, e.offsetY);
+        ctx.stroke();
+        });
+
+        canvas.addEventListener('mouseup', () => drawing = false);
+        canvas.addEventListener('mouseleave', () => drawing = false);
+
+        function clearPad()
+        {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        function saveSignature() {
+
+        const canvas = document.getElementById("Lienzo");
+        const imageData = canvas.toDataURL("image/png");
+        const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+        fetch("/VisorReport?handler=SaveSignature", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" ,
+        "RequestVerificationToken": token
+        },
+                                         
+        body: JSON.stringify({
+        imageData: imageData,
+        documentName: NameFile_
+        })
+        })
+        .then(res => res.json())
+        .then(data => {
+        if (data.success) {
+                                  
+               Swal.fire({
+        title: "Envio",
+        text: "Documento enviado correctamente!!",
+        icon: "success"
+        });
+        CloseModalSign();
+
+        } else {
+                                    
+        Swal.fire({
+        position: 'Error',
+        icon: 'error',
+        text: data.d.message,
+        showConfirmButton: true,
+        });
+        //alert(data.d.message);
+        }
+        CloseModalSign();
+        });
+        }
+
+      
+
+    </script>
+
+
+</body>
+</html>
