@@ -1,0 +1,31 @@
+﻿@page
+@model SignatureModel
+@{
+    Layout = null;
+}
+
+@Html.AntiForgeryToken()
+
+<link href="~/hr/css//Signature.css" rel="stylesheet" />
+
+<div class="signature-container">
+    
+    <canvas id="Lienzo"></canvas>
+
+    <div class="signature-hint">
+        Usa el mouse o tu dedo para firmar
+    </div>
+
+    <div class="actions">
+        <button type="button" onclick="clearPad()" class="btn btn-custom btn-clear">
+            Limpiar
+        </button>
+
+        <button type="button" onclick="SignatureModule.save()" class="btn btn-custom btn-save">
+            Enviar Firma
+        </button>
+    </div>
+
+</div>
+
+<input type="hidden" id="documentName" value="@Model.DocumentName" />

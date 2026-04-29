@@ -1,0 +1,16 @@
+﻿@page "/ReportViewer"
+@using Microsoft.Extensions.Configuration
+@inject IConfiguration Configuration
+
+<div style="min-height: 950px;width: 100%;">
+    <bold-report-viewer id="viewer"
+                        report-service-url="/api/ReportingAPI"
+                        report-path="PepsFormatDetermination">
+    </bold-report-viewer>
+</div>
+
+@section Scripts {
+    <link href="https://cdn.boldreports.com/5.1.1/content/material/bold.reports.all.min.css" rel="stylesheet" />
+    <script src="https://cdn.boldreports.com/5.1.1/scripts/common/ej2-base.min.js"></script>
+    <script src="https://cdn.boldreports.com/5.1.1/scripts/bold.report-viewer.min.js"></script>
+}

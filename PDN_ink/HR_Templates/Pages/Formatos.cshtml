@@ -1,0 +1,97 @@
+﻿@page
+@model HR_Templates.Pages.FormatosModel
+@{
+    var _token = string.Empty;
+    Layout = null;
+    if (@ViewData["_Token"] != null)
+    {
+        const string V = "_Token";
+        _token = @ViewData[V]?.ToString();
+    }
+}
+<link href="~/hr/css/styleFormatos.css" rel="stylesheet" />
+<div class="container">
+    <div class="card">
+
+        <div class="title">
+            📄 Selección de Formatos
+        </div>
+
+        <form method="post">                     
+
+            <div class="form-layout">
+
+                <div class="list-container">
+
+                    <input type="text" id="search" placeholder="Buscar formato..." />
+
+                    <div class="list" id="formatList">
+                        @foreach (var item in Model.Formatos)
+                        {
+                            <div class="list-item" data-value="@item.Is_SSRS" data-id="@item.Id">
+                                @item.Name
+                          </div>
+                        }
+                    </div>
+                </div>
+                                
+                <button class="btn-submit" onclick="enviar()">
+                    <i class="fa-solid fa-paper-plane"></i>
+                      Enviar 🚀
+                    </button>
+            </div>                
+
+            <input type="hidden" id="selectedValue" name="Document_Option_Id" />
+            <input type="hidden" id="ExcelorSSRS" name="Is_SSRS" />
+            <input type="hidden" id="token" name="_token"  value="@_token" />
+
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="error-box">
+                    @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                    {
+                        <div>@error.ErrorMessage</div>
+                    }
+                </div>
+            }
+
+        </form>
+
+    </div>
+</div>
+
+ <script >
+    
+    const items = document.querySelectorAll(".list-item");
+    const hidden = document.getElementById("selectedValue");
+    const search = document.getElementById("search");
+    const hd_is = document.getElementById("ExcelorSSRS");
+
+    items.forEach(item => {
+        item.addEventListener("click", () => {
+        debugger;
+            items.forEach(i => i.classList.remove("active"));      
+            item.classList.add("active");        
+            hidden.value = item.dataset.id;
+            hd_is.value = item.dataset.value;
+
+        });
+    });
+
+    search.addEventListener("keyup", () => {
+        const text = search.value.toLowerCase();
+
+        items.forEach(item => {
+            const visible = item.innerText.toLowerCase().includes(text);
+            item.style.display = visible ? "block" : "none";
+        });
+    });
+
+    function enviar() {
+        if (!hidden.value) {
+            alert("Selecciona un formato");
+            return;
+        }
+        document.forms[0].submit();
+    }
+</script> 

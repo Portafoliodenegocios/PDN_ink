@@ -1,0 +1,161 @@
+
+
+{"Schema specified is not valid. Errors: \r\nThe mapping of CLR type to EDM type is ambiguous because multiple CLR types match the EDM type 'cat_Document_Status'.
+ Previously found CLR type 'BusinessObjects.EF4.Models.PDNInk.cat_Document_Status', newly found CLR type 'BusinessObjects.EF4.Models.Expedient.cat_Document_Status'.\r\n
+ The mapping of CLR type to EDM type is ambiguous because multiple CLR types match the EDM type 'cat_Level_Classification'. 
+ Previously found CLR type 'BusinessObjects.EF4.Models.PDNInk.cat_Level_Classification', newly found CLR 
+type 'BusinessObjects.EF4.Models.Expedient.cat_Level_Classification'."}
+
+
+  <div class="list" id="formatList">
+      @foreach (var item in Model.Formatos)
+      {
+        <div class="list-item"  data-value="@item" >
+             @item
+        </div>
+      }
+  </div>
+  
+  ****** 27-04-2026 ******
+  
+  -- Poblar la tabla "Report_Type_Option"  con los reportes  de proyecto de PDNInk de serverdev el folder Reports
+  
+  -- Ajustar la pagina index para que se muestre de acuerdo al prototipo.(Aqui estoy)
+  
+  
+  -- Vincular servicio de pndink "http://persefone-test:9028/PDNInk.svc" al proyecto HR_Templates
+	-- Agregar proxys  al proyecto 
+	-- se modifico vista  y el metodo Get  para consumir desde el servicio los documentos y poblar droptlist (Aqui estoy)
+	
+	
+	
+	*****  28-04-2026  ******
+	
+	--  Se ajusto la vista para que todo se poble con l servicio, se agregaron parametros y modificaron metodos.
+	
+	-- Se esta trabajando en la vista visorreport para consumir los reportes desde http://hermes/Reports/browse/PDN_Ink
+	    -- crear funcionalidad para enviar el nombre del reporte y si es tipo reporting services 
+        -- Desencriptar el token para obtener los datos como Nombre completo que s eutilizara para los reportes. 
+		   -- se agrego constructor de Formatos model para poder leer datos appsetting 
+		   -- se pasaaron y adaptaron metodos "IsValidToken" y "ReadToken" para obtener informacion del token.
+		   
+	
+	
+
+	
+	
+	Uncaught TypeError: Cannot set properties of null (setting 'value').
+	
+	
+	ViewData["NameReport"] = rpttypeopt?.Report_File;	
+	http://hermes/Reports/browse/
+	rptAcceptanceScholarship   
+	
+	
+	_configuration.GetSection("ReportServer")
+	
+	
+	private readonly IWebHostEnvironment _env;
+
+    private readonly IConfiguration _configuration;
+	
+	    public VisorReportModel(IWebHostEnvironment env, IConfiguration configuration)
+    {
+        _env = env;
+        _configuration = configuration;
+    }
+	
+	
+ private async Task<JsonResult> GenerateToken(ApiResponse response, bool setToken, string userLogin)
+ {
+     try
+     {
+         var responseToken = AesUtils.Decrypt(response.Data);
+
+         if (string.IsNullOrEmpty(responseToken))
+         {
+             response.Mistake = "Petición no valida";
+             return StringResponse(response.Mistake);
+         }
+
+         ClaimsPrincipal tokenClaims = new ClaimsPrincipal();
+         string validationError = string.Empty;
+
+         if (!IsValidToken(responseToken, ref tokenClaims, ref validationError))
+         {
+             response.Mistake = $"El token de autenticación no es valido. {validationError}";
+             return StringResponse(response.Mistake);
+         }
+
+         if (tokenClaims.Claims.FirstOrDefault(x => x.Type == "username")?.Value.ToLower() != userLogin.ToLower())
+         {
+             response.Mistake = $"Se ha detectado un desfase de token";
+             return StringResponse(response.Mistake);
+         }
+
+         var handler = new JwtSecurityTokenHandler();
+
+         var userGuidValue = tokenClaims.Claims.FirstOrDefault(x => x.Type == "UserId")?.Value;
+
+         if (!Guid.TryParse(userGuidValue, out var userGuid) || userGuid == Guid.Empty)
+         {
+             response.Mistake = "Los datos del token de autenticación no son validos";
+             return StringResponse(response.Mistake);
+         }
+
+         var namefull = tokenClaims.Claims.FirstOrDefault(x => x.Type == "FullName")?.Value;
+
+
+         var claims = new List<Claim>
+             {
+                 new Claim(JwtRegisteredClaimNames.Sub, userGuidValue),
+                 new Claim("username", userLogin),
+                 new Claim("UserGuid", userGuidValue),
+                 new Claim("FullName", namefull)
+             };
+
+        
+         var signingKey = new SymmetricSecurityKey(
+             Encoding.UTF8.GetBytes(AppSettings.SigningSecret.ToBase64())
+         );
+
+         var signingCredentials = new SigningCredentials(
+             signingKey,
+             SecurityAlgorithms.HmacSha512
+         );
+
+         var jwtToken = handler.CreateJwtSecurityToken(
+             issuer: AppSettings.Issuer,
+             audience: AppSettings.Audience,
+             subject: new ClaimsIdentity(claims),
+             notBefore: DateTime.UtcNow,
+             expires: DateTime.UtcNow.AddDays(1),
+             signingCredentials: signingCredentials
+         );
+
+         var tokenString = handler.WriteToken(jwtToken);
+
+         var tempToken = $"Bearer {tokenString}";
+
+         if (setToken)
+             _constants.Token = tempToken;
+         else
+             _constants.TempToken = tempToken;
+
+         _constants.UserGuid = userGuid;
+
+         return ObjectResponse(new
+         {
+             token = tokenString,
+             userId = userGuidValue
+         }, 1, true);
+     }
+     catch (Exception e)
+     {
+         response.Mistake = e.Message.Contains("See the inner exception for details")
+             ? e.InnerException?.Message ?? e.Message
+             : e.Message;
+
+         return StringResponse(response.Mistake);
+     }
+ }

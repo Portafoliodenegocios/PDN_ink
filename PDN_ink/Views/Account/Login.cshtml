@@ -1,0 +1,187 @@
+﻿@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDN INK - Inicio de sesion</title>
+    <link rel="stylesheet" href="~/css/login.css" asp-append-version="true">
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body>
+    <i class="bg-overlay"></i>
+    <canvas id="spiders"></canvas>
+
+    <div class="login-container">
+        <!-- Columna del Formulario -->
+        <div class="login-form-column">
+            <div class="login-content">
+            
+            <div class="logo-container">
+               <img src="@Url.Content("~/img/icono.png")" width="380" height="260" />
+            </div>
+
+            <h1>INICIO DE SESIÓN</h1>
+            <p class="subtitle">Ingrese usuario y contraseña para continuar</p>
+
+          @*   <form onsubmit="event.preventDefault(); window.location.href='index.html'"> *@
+            <div class="form-group">
+                <label>Usuario</label>
+                <div class="input-wrapper">
+                            <span class="input-icon">👤</span>
+                    <input type="text" id="usuario" placeholder="Ingrese su usuario">
+                          
+                </div>
+            </div>
+
+            <div class="form-group">
+                        <label>Contraseña</label>
+                <div class="input-wrapper">
+                            <span class="input-icon">🔑</span>
+                    <input type="password" id="contrasena" placeholder="Ingrese su contraseña">
+                </div>
+            </div>
+
+                <button class="btn-login" id="btn_ingresar">Ingresar</button>
+
+        @*     </form> *@
+                <div class="forgot-password">
+                    Olvidaste tu contraseña, 
+                    <a asp-controller="Account" asp-action="ForgotPassword">Da clic aquí</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Columna de la Imagen -->
+        <div class="login-image-column">
+            <div class="image-overlay">
+               @*  <h2>Gestión de documentos y firma electrónica</h2> *@
+            </div>
+            <img src="img/login.jpg" alt="Fondo Login">
+        </div>
+    </div>
+
+
+    <script type="text/javascript">
+
+        $(document).ready(function () {
+
+        $('#btn_ingresar').on('click', function () {
+        
+
+           var $btn = $(this);
+           $btn.prop("disabled", true);
+
+           var userName = $("#usuario").val().trim();
+           var password = $("#contrasena").val().trim();
+        
+        if (!userName) {
+                   
+                    Swal.fire({
+                    icon: 'warning',
+                    title: 'Campo requerido',
+                    text: 'Ingrese su usuario'
+                    }).then(() => {
+                    $("#usuario").focus();
+                    });
+
+                    $btn.prop("disabled", false);
+                    return; 
+        }
+        if (!password) {
+
+                Swal.fire({
+                icon: 'warning',
+                title: 'Campo requerido',
+                text: 'Ingrese su contraseña'
+                }).then(() => {
+                $("#contrasena").focus(); 
+                });
+
+        $btn.prop("disabled", false);
+        return;
+       
+       
+        }
+
+        showLoading();
+     
+        $.ajax({
+        url: "/Account/WebLogin",
+        type: "POST",
+        data: {
+        Username: userName,
+        Password: password,
+        TokenKey: "@ViewBag.Token",
+        AppId: "@ViewBag.AppId",
+        Sin: "@ViewBag.Sin"
+        }
+        })
+        .done(function (response) {
+
+        if (response.Success === true) 
+        {
+         
+        document.cookie = "PdnInkToken=" + response.Token + ";path=/;max-age=86400;SameSite=None;Secure";
+
+        localStorage.setItem("UserToken", response.Token);
+            window.location.href = "/Home/Check?Username=" + btoa(userName);
+        } else {
+            Swal.fire({
+            icon: 'error',
+            title: 'Oops...',
+            text: response.ClearData || 'Error al iniciar sesión'
+            });
+        hideLoading();
+        $btn.prop("disabled", false);
+        }
+
+        })
+        .fail(function () {
+        Swal.fire({
+        icon: 'error',
+        title: 'Oops...',
+        text: response.ClearData || 'Error de conexión'
+        });
+         
+        hideLoading();
+        $btn.prop("disabled", false);
+        });
+
+        function resetButton() {
+        $btn.prop("disabled", false);
+        }
+
+        });
+
+        });
+
+         
+
+        function showLoading() {
+        $("#loadingOverlay").addClass("active");
+        }
+
+        function hideLoading() {
+        $("#loadingOverlay").removeClass("active");
+        }
+
+     
+    </script>
+
+    <div id="loadingOverlay">
+        <div class="loader-box">
+            <div class="spinner"></div>
+            <div class="loading-text">Ingresando...</div>
+        </div>
+    </div>
+    <script src="js/login-animation.js"></script>
+</body>
+
+   
+
+</html>

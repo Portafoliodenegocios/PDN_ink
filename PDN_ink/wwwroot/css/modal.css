@@ -1,0 +1,235 @@
+/* --- Modal --- */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    z-index: 2000;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.modal-container {
+    background-color: white;
+    width: 95%;
+    max-width: 1200px;
+    height: 90vh;
+    border-radius: 15px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+
+.modal-header {
+    padding: 15px 25px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.close-modal {
+    background: none;
+    border: none;
+    font-size: 28px;
+    cursor: pointer;
+    color: var(--text-secondary);
+    line-height: 1;
+}
+
+.modal-body {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+}
+
+/* --- PDF Viewer --- */
+.pdf-viewer-container {
+    flex: 2;
+    background-color: #525659;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    gap: 20px;
+    overflow-y: auto;
+}
+
+.pdf-placeholder {
+    background-color: #404447;
+    color: white;
+    text-align: center;
+    width: 100%;
+    min-height: 400px; /* Reducido para ver más docs */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    border-radius: 8px;
+    padding: 20px;
+    flex-shrink: 0;
+    position: relative; /* Para posicionar el botón de eliminar */
+    border-left: 8px solid; /* Borde de color para distinción */
+    cursor: grab; /* Indica que se puede arrastrar */
+    transition: opacity 0.2s;
+}
+
+.pdf-placeholder.dragging {
+    opacity: 0.5;
+    cursor: grabbing;
+}
+
+.pdf-placeholder .doc-title {
+    font-size: 18px;
+    font-weight: bold;
+    margin-top: 15px;
+}
+
+.remove-doc-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 30px;
+    height: 30px;
+    background-color: rgba(0,0,0,0.3);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    font-size: 16px;
+    line-height: 30px;
+    text-align: center;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.remove-doc-btn:hover {
+    background-color: rgba(231, 76, 60, 0.8); /* Rojo al pasar el cursor */
+}
+
+
+/* --- Signature Panel --- */
+.signature-panel {
+    flex: 1;
+    padding: 20px;
+    background-color: #f9f9f9;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    overflow-y: auto;
+     padding-bottom: 100px;
+}
+
+.signature-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 20opx;
+    
+}
+
+.tab-btn {
+    flex: 1;
+    padding: 10px;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    font-weight: 500;
+    color: var(--text-secondary);
+    transition: all 0.2s;
+}
+
+.tab-btn.active {
+    color: var(--active-tab-color);
+    border-bottom-color: var(--active-tab-color);
+    font-weight: 700;
+}
+
+.tab-content {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    height: 100%;
+}
+
+.tab-content.active {
+    display: flex;
+}
+
+/* --- Signature Pad --- */
+.signature-pad-container {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+#signatureCanvas {
+    border: 2px dashed #ccc;
+    border-radius: 8px;
+    background-color: white;
+    cursor: crosshair;
+    touch-action: none;
+}
+
+.pad-actions {
+    margin-top: 10px;
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.btn-clear-sig {
+    background: none;
+    border: 1px solid #ccc;
+    padding: 5px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    color: #666;
+}
+
+.btn-sign-confirm {
+    margin-top: 40px;
+    width: 90%;
+     max-width: 300px; 
+    justify-content: center;
+    padding: 15px;
+    font-size: 16px;
+    background-color: #FCAA0B;
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: background 0.2s;
+}
+
+.btn-sign-confirm:hover {
+    background-color: #e59d0a;
+}
+
+/* --- Responsive Modal --- */
+@media (max-width: 768px) {
+    .modal-body {
+        flex-direction: column;
+    }
+
+    .pdf-viewer-container {
+        height: 50%;
+        border-right: none;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .signature-panel {
+        height: 50%;
+    }
+}

@@ -1,0 +1,139 @@
+/* --- Imports --- */
+@import url('base.css');
+@import url('layout.css');
+@import url('components.css');
+@import url('table.css');
+@import url('modal.css');
+@import url('dashboard.css');
+@import url('history.css');
+
+/* --- Responsive Adjustments --- */
+
+/* Medium devices (tablets, less than 992px) */
+@media (max-width: 991.98px) {
+    .sidebar {
+        position: fixed;
+        transform: translateX(-100%);
+        height: 100%;
+        box-shadow: 0 0 15px rgba(0,0,0,0.2); /* Sombra para que resalte sobre el contenido */
+    }
+
+    .sidebar.active {
+        transform: translateX(0);
+    }
+}
+
+/* Small devices (landscape phones, less than 768px) */
+@media (max-width: 767.98px) {
+    .top-bar {
+        flex-direction: column;
+        align-items: stretch; /* Estirar elementos para ocupar el ancho disponible */
+        padding: 15px;
+        gap: 15px;
+        height: auto; /* Permitir que crezca según el contenido */
+    }
+
+    .page-title {
+        width: 100%;
+        justify-content: flex-start; /* Alinear al inicio */
+        font-size: 18px; /* Reducir tamaño de fuente */
+        flex-wrap: wrap; /* Permitir que el texto baje si es muy largo */
+        gap: 10px;
+    }
+
+    #pageTitleText {
+        flex: 1; /* El texto ocupa el espacio restante */
+        white-space: normal; /* Permitir saltos de línea */
+        line-height: 1.3;
+    }
+
+    .top-actions {
+        width: 100%;
+        justify-content: space-between; /* Distribuir espacio entre búsqueda e iconos */
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .search-box {
+        order: 2; /* Búsqueda abajo de los iconos en móviles muy pequeños si es necesario */
+        width: 100%; /* Ocupar todo el ancho */
+        margin-right: 0;
+    }
+
+    .search-box input {
+        width: 100%; /* Input al 100% del contenedor */
+    }
+
+    /* Contenedor de iconos (Notificaciones, Perfil, etc) */
+    .top-actions > button,
+    .top-actions > .dropdown-container {
+        order: 1; /* Iconos arriba de la búsqueda */
+    }
+
+    /* Agrupar los iconos a la derecha */
+    .top-actions {
+        display: grid;
+        grid-template-columns: 1fr auto auto; /* Búsqueda (luego se mueve con order), Icono, Perfil */
+        grid-template-areas:
+            "icons icons icons"
+            "search search search";
+        display: flex; /* Volvemos a flex para mayor control */
+    }
+
+    .content-area {
+        padding: 15px; /* Menos padding en el contenido principal */
+    }
+
+    .table-header-actions {
+        flex-direction: column;
+        align-items: stretch; /* Botones ancho completo */
+        gap: 10px;
+    }
+
+    .btn-primary {
+        justify-content: center; /* Centrar texto en botones */
+        width: 100%;
+    }
+
+    .modal-body {
+        flex-direction: column;
+    }
+
+    .pdf-viewer-container {
+        height: 300px; /* Altura fija para el visor en móvil */
+        flex: none;
+    }
+
+    .signature-panel {
+        flex: 1;
+        min-height: 300px;
+    }
+}
+
+/* Extra small devices (portrait phones, less than 576px) */
+@media (max-width: 575.98px) {
+    .top-actions {
+        justify-content: flex-end; /* Alinear iconos a la derecha */
+    }
+
+    .search-box {
+        order: 3; /* Forzar búsqueda al final (abajo) */
+        margin-top: 5px;
+    }
+
+    /* Ajustar tamaño de botones de acción */
+    .action-icon-btn {
+        width: 38px;
+        height: 38px;
+    }
+
+    .user-avatar {
+        width: 38px;
+        height: 38px;
+    }
+
+    /* Ocultar texto del título si es extremadamente largo o reducir más */
+    .page-title {
+        font-size: 16px;
+    }
+}

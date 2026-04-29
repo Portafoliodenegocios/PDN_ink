@@ -1,0 +1,871 @@
+﻿@using Microsoft.Extensions.Configuration
+@inject IConfiguration Configuration
+@{
+    ViewData["Title"] = "Home Page";
+    Layout = "_Layout";
+    string token = ViewData["TokenRH"] as string;
+
+}
+<!DOCTYPE html>
+<html lang="es">
+ <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentos - PDNInk</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <link rel="stylesheet" href="~/css/index.css">
+    <link rel="stylesheet" href="~/css/dashboard.css">   
+</head>
+
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+
+            <button class="close-sidebar-btn" id="closeSidebarBtn">
+                <i class="fa-solid fa-chevron-left"></i>
+            </button>
+            <div class="sidebar-header">
+                <img src="~/img/icono.png" class="logo-img" alt="Logo">
+            </div>
+
+            <nav class="sidebar-nav">
+
+                <ul>
+                    <li class="active" onclick="DashboardApp.Navigation.loadPage('originacion', this)">
+                        <a href="#" title="Documentos originación del crédito"><i class="fa-solid fa-file-contract icon"></i><span class="menu-text">Documentos originación del crédito</span></a>
+                    </li>
+                    <li onclick="DashboardApp.Navigation.loadPage('generales', this)">
+                        <a href="#" title="Documentos Generales"><i class="fa-solid fa-folder-open icon"></i><span class="menu-text">Documentos Generales</span></a>
+                    </li>
+                    <li onclick="DashboardApp.Navigation.loadPage('vistos', this)">
+                        <a href="#" title="Documentos vistos"><i class="fa-solid fa-eye icon"></i><span class="menu-text">Documentos vistos</span></a>
+                    </li>
+                    <li onclick="DashboardApp.Navigation.loadPage('carpetas', this)">
+                        <a href="#" title="Mis Carpetas"><i class="fa-solid fa-folder icon"></i><span class="menu-text">Mis Carpetas</span></a>
+                    </li>
+                    <li onclick="DashboardApp.Navigation.loadPage('dashboard', this)">
+                        <a href="#" title="Dashboard"><i class="fa-solid fa-chart-line icon"></i><span class="menu-text">Dashboard</span></a>
+                    </li>
+                    <li onclick="DashboardApp.Navigation.loadPage('configuracion', this)">
+                        <a href="#" title="Ajustes"><i class="fa-solid fa-gear icon"></i><span class="menu-text">Ajustes</span></a>
+                    </li>
+                    <li>
+                        @if (ViewData["TokenRH"] != null)
+                        {
+                            <a href="@Configuration["SiteRH:RH"]Formatos?access_token=@ViewData["TokenRH"]">
+                                <i class="fa-regular fa-file-excel"></i>
+                                <span class="menu-text"> Capital Humano</span>
+                            </a>
+                        }
+                        else
+                        {
+                            <a href="/Account/Login">
+                                <i class="fa-regular fa-file-excel"></i>
+                                <span class="menu-text">Sesión expirada</span>
+                            </a>
+                        }
+                    </li>
+                    <li>
+                        <a href="login.html" title="Salir"><i class="fa-solid fa-right-from-bracket icon"></i><span class="menu-text">Salir</span></a>
+                    </li>
+                </ul>
+                            
+             </nav>
+        </aside>  
+
+        @*   <li>
+                                <a asp-controller="Documents" asp-action="VacationRequest">
+                                <i class="fa-regular fa-file-excel"></i>
+                                    <span class="menu-text">Vacaciones Rotativa </span>
+                                </a>
+                            </li>
+
+                        <li>
+                            <a asp-controller="Documents" asp-action="GenerateVacationPdf">
+                                <i class="fa-regular fa-file-excel"></i>
+                                <span class="menu-text">Vacaciones EEplus </span>
+                            </a>
+                        </li> *@   
+
+        
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Bar -->
+            <header class="top-bar">
+                <div class="page-title">
+                    <button class="toggle-btn" id="toggleSidebar">☰</button>
+                    <span id="pageTitleText">Documentos Originación del crédito</span>
+                </div>
+                <div class="top-actions">
+                    <div class="search-box">
+                        <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                        <input type="text" id="searchInput" placeholder="Buscar en toda la tabla...">
+                    </div>
+                    <div class="dropdown-container">
+                        <button class="action-icon-btn" id="moreOptionsBtn" title="Más opciones">
+                            <svg viewBox="0 0 24 24"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" /></svg>
+                        </button>
+                        <div class="dropdown-menu" id="moreOptionsDropdown">
+                            <a href="#"><i class="fa-solid fa-plus icon"></i> Nuevo Documento</a>
+                            <a href="#" onclick="DashboardApp.Folders.openCreateModal()"><i class="fa-solid fa-folder-plus icon"></i> Nueva carpeta</a>
+                            <a href="#"><i class="fa-solid fa-box-archive icon"></i> Archivar</a>
+                        </div>
+                    </div>
+                    <button class="action-icon-btn" id="settingsBtn" title="Ajustes">
+                        <svg viewBox="0 0 24 24"><path d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C14.46 2.18 14.25 2 14 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1c-.23-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.5.12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49-.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.23.09.49 0 .61-.22l2-3.46c.12-.22.07-.5-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z" /></svg>
+                    </button>
+                    <button class="action-icon-btn" title="Notificaciones">
+                        <svg viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2zm-2 1H8v-6c0-2.48 1.51-4.5 4-4.5s4 2.02 4 4.5v6z" /></svg>
+                    </button>
+                    <div class="dropdown-container">
+                        <div class="user-profile" id="profileBtn">
+                            <div class="user-avatar"><img src="~/img/perfil.png" alt="User"></div>
+                        </div>
+                        <div class="dropdown-menu" id="profileDropdown">
+                            <a href="#">Mi Perfil</a>
+                            <a href="#">Cuenta</a>
+                            <a href="#">Cerrar Sesión</a>
+                        </div>
+                    </div>
+                    
+                </div>
+            </header>
+
+            <!-- Content Area -->
+            <div class="content-area">
+                <div id="dynamic-content">
+                    <!-- Aquí se cargará el contenido dinámicamente -->
+                </div>
+            </div>
+        </main>
+
+    </div>
+
+
+    <!-- MODAL DE FIRMA -->
+    <div id="signModal" class="modal-overlay">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3 id="modalDocTitle">Firmar Documento</h3>
+                <button class="close-modal" onclick="DashboardApp.Modal.closeSignModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="pdf-viewer-container">
+                    <div class="pdf-placeholder"><i class="fa-solid fa-file-pdf fa-3x"></i><p>Vista previa del documento</p></div>
+                </div>
+                <div class="signature-panel">
+                    <div class="signature-tabs">
+                        <button class="tab-btn active" onclick="DashboardApp.Modal.switchSignTab('insertar')">Insertar Firma</button>
+                        <button class="tab-btn" onclick="DashboardApp.Modal.switchSignTab('firmar')">Firmar</button>
+                    </div>
+                    <div id="tab-insertar" class="tab-content active">
+                        <div class="signature-preview-container">
+                            <p style="margin-bottom: 10px; color: #718ebf;">Firma registrada:</p>
+                            <div class="signature-display"><img src="~/img/firma.png" alt="Firma" style="max-width: 100%; max-height: 80px;"></div>
+                        </div>
+                        <button class="btn-primary btn-sign-confirm" onclick="DashboardApp.Modal.closeSignModal()"><i class="fa-solid fa-pen-nib"></i> Insertar firma en documento</button>
+                    </div>
+                    <div id="tab-firmar" class="tab-content">
+                        <p style="margin-bottom: 10px; color: #718ebf;">Dibuje su firma:</p>
+                        <div class="signature-pad-container"><canvas id="signatureCanvas" width="300" height="150"></canvas></div>
+                        <div class="pad-actions"><button class="btn-clear-sig" onclick="DashboardApp.Modal.clearCanvas()">Borrar</button></div>
+                        <button class="btn-primary btn-sign-confirm" onclick="DashboardApp.Modal.closeSignModal()"><i class="fa-solid fa-check"></i> Guardar y Firmar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL CREAR CARPETA -->
+    <div id="createFolderModal" class="modal-overlay">
+        <div class="modal-container" style="max-width: 400px; height: auto;">
+            <div class="modal-header">
+                <h3>Nueva Carpeta</h3>
+                <button class="close-modal" onclick="DashboardApp.Folders.closeCreateModal()">&times;</button>
+            </div>
+            <div class="modal-body" style="padding: 20px; flex-direction: column; gap: 15px;">
+                <div class="form-group">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #343c6a;">Nombre de la carpeta</label>
+                    <input type="text" id="newFolderName" class="form-input" placeholder="Ej: Contratos 2026" style="width: 100%;">
+                </div>
+                <div class="form-actions" style="display: flex; justify-content: flex-end; gap: 10px;">
+                    <button class="btn-secondary" onclick="DashboardApp.Folders.closeCreateModal()">Cancelar</button>
+                    <button class="btn-primary" onclick="DashboardApp.Folders.createFolder()">Crear</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PANEL DE HISTORIAL -->
+    <div id="historySidebar" class="history-sidebar">
+        <div class="history-header">
+            <h3>Historial del Documento</h3>
+            <button class="close-history-btn" onclick="DashboardApp.HistoryPanel.close()">&times;</button>
+        </div>
+        <div class="history-body">
+            <h4 id="historyDocTitle" style="margin-bottom: 20px; color: #151f6d;">Documento</h4>
+            <ul class="timeline">
+                <!-- Se llenará dinámicamente -->
+            </ul>
+        </div>
+    </div>
+    <div id="historyOverlay" class="history-overlay" onclick="DashboardApp.HistoryPanel.close()"></div>
+
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+@*     <script src="~/js/main.js"></script> *@
+    <!-- Pruebas Unitarias -->
+@*     <script src="~/js/tests.js"></script> *@
+</body>
+</html>
+
+     @*    <main class="main-content">
+         
+            <header class="top-bar">
+                <div class="page-title">
+                    <button class="toggle-btn" id="toggleSidebar">☰</button>
+                    <span id="pageTitleText">Documentos Originación del crédito</span>
+                </div>
+
+                <div class="top-actions">
+                    <div class="search-box">
+                        <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                        <input type="text" id="searchInput" placeholder="Buscar en toda la tabla...">
+                    </div>
+                    <button class="action-icon-btn" id="settingsBtn">
+                        <svg viewBox="0 0 24 24"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12-0.61l1.92,3.32c0.12,0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z" /></svg>
+                    </button>
+                    <button class="action-icon-btn">
+                        <svg viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2zm-2 1H8v-6c0-2.48 1.51-4.5 4-4.5s4 2.02 4 4.5v6z" /></svg>
+                    </button>
+                    <div class="dropdown-container">
+                        <div class="user-profile" id="profileBtn">
+                            <div class="user-avatar">
+                                    <img src="~/img/perfil.png" alt="User">
+                            </div>
+                        </div>
+                        <div class="dropdown-menu" id="profileDropdown">
+                            <a href="#">Mi Perfil</a>
+                            <a href="#">Cuenta</a>
+                            <a href="#">Cerrar Sesión</a>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+        
+            <div class="content-area">
+
+              
+                <div id="originacion" class="section-content">
+                    <div class="table-header-actions">
+                        <h2 class="table-title">Documentos Originación del Crédito</h2>
+                        <div class="table-filters">
+                            <button class="btn-primary">
+                                <i class="fa-solid fa-paper-plane"></i> Enviar a firma
+                            </button>
+                        </div>  *@
+                     @*    <button type="button"
+                                class="btn-primary"
+                                     
+                                onclick="openSignaturePopup('test.pdf')">
+                            Enviar a firma
+                        </button>
+
+                                <button type="button" class="btn btn-success"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#signatureModal">
+                                    modal directo
+                                </button> *@
+                        @* <a asp-controller="DocumentSignature"
+                               asp-action="Signature"
+                               asp-route-documentName="DocumentoPrueba"
+                               class="btn-primary">
+                            Enviar a firma
+                        </a> *@
+                  @*   </div>
+
+                    <div class="table-container">
+                        <table id="originacionTable">
+                            <thead>
+                                <tr>
+                                    <th>Selec</th>
+                                    <th>Doc</th>
+                                    <th class="filterable-header" data-col="2">
+                                        <div class="th-content"><span>Sistema origen</span><i class="fa-solid fa-filter filter-icon"></i></div>
+                                        <div class="filter-dropdown"></div>
+                                    </th>
+                                    <th class="filterable-header" data-col="3">
+                                        <div class="th-content"><span># Sol</span><i class="fa-solid fa-filter filter-icon"></i></div>
+                                        <div class="filter-dropdown"></div>
+                                    </th>
+                                    <th class="filterable-header" data-col="4">
+                                        <div class="th-content"><span>#Crédito</span><i class="fa-solid fa-filter filter-icon"></i></div>
+                                        <div class="filter-dropdown"></div>
+                                    </th>
+                                    <th class="filterable-header" data-col="5">
+                                        <div class="th-content"><span>Expediente</span><i class="fa-solid fa-filter filter-icon"></i></div>
+                                        <div class="filter-dropdown"></div>
+                                    </th>
+                                    <th class="filterable-header" data-col="6">
+                                        <div class="th-content"><span>Razón social</span><i class="fa-solid fa-filter filter-icon"></i></div>
+                                        <div class="filter-dropdown"></div>
+                                    </th>
+                                    <th class="filterable-header" data-col="7">
+                                        <div class="th-content"><span>Documento</span><i class="fa-solid fa-filter filter-icon"></i></div>
+                                        <div class="filter-dropdown"></div>
+                                    </th>
+                                    <th class="filterable-header" data-col="8">
+                                        <div class="th-content"><span>Fecha creación</span><i class="fa-solid fa-filter filter-icon"></i></div>
+                                        <div class="filter-dropdown"></div>
+                                    </th>
+                                    <th class="filterable-header" data-col="9">
+                                        <div class="th-content"><span>Usuario creación</span><i class="fa-solid fa-filter filter-icon"></i></div>
+                                        <div class="filter-dropdown"></div>
+                                    </th>
+                                    <th class="filterable-header" data-col="10">
+                                        <div class="th-content"><span>Fecha act.</span><i class="fa-solid fa-filter filter-icon"></i></div>
+                                        <div class="filter-dropdown"></div>
+                                    </th>
+                                    <th class="filterable-header" data-col="11">
+                                        <div class="th-content"><span>Usuario act.</span><i class="fa-solid fa-filter filter-icon"></i></div>
+                                        <div class="filter-dropdown"></div>
+                                    </th>
+                                    <th class="filterable-header" data-col="12">
+                                        <div class="th-content"><span>Firmantes</span><i class="fa-solid fa-filter filter-icon"></i></div>
+                                        <div class="filter-dropdown"></div>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><input type="checkbox" class="custom-checkbox"></td>
+                                    <td>
+                                        <button class="doc-btn" onclick="openSignModal('F-NEG-COM-08')">
+                                            <img src="~/img/pdf.jpg" " alt="PDF">
+                                            
+                                        </button>
+                                    </td>
+                                    <td>Brokers/Visitas</td>
+                                    <td>45170</td>
+                                    <td>-</td>
+                                    <td>9067</td>
+                                    <td>Evelin Ramirez</td>
+                                    <td>F-NEG-COM-08</td>
+                                    <td>28/01/2026</td>
+                                    <td>Evelin Ramirez</td>
+                                    <td>-</td>
+                                    <td>-</td>
+                                    <td><ul class="signer-list"><li class="signer-item"><span class="status-dot status-green"></span>Evelin Ramirez</li></ul></td>
+                                </tr>
+                                <tr>
+                                    <td><input type="checkbox" class="custom-checkbox"></td>
+                                    <td>
+                                        <button class="doc-btn" onclick="openSignModal('F-NEG-FIN-CRE-02')">
+                                            <img src="~/img/pdf.jpg" alt="PDF">
+                                        </button>
+                                    </td>
+                                    <td>BeMoney</td>
+                                    <td>14100</td>
+                                    <td>14100</td>
+                                    <td>6119</td>
+                                    <td>KD SOLUCIONES</td>
+                                    <td>F-NEG-FIN-CRE-02</td>
+                                    <td>29/01/2026</td>
+                                    <td>Evelin Ramirez</td>
+                                    <td>05/02/2026</td>
+                                    <td>Evelin Ramirez</td>
+                                    <td><ul class="signer-list"><li class="signer-item"><span class="status-dot status-green"></span>Analista</li><li class="signer-item"><span class="status-dot status-yellow"></span>Gerente</li></ul></td>
+                                </tr>
+                                <tr>
+                                    <td><input type="checkbox" class="custom-checkbox"></td>
+                                            <td><div class="doc-icon-wrapper"><img src="~/img/pdf.jpg"  alt="PDF"></div></td>
+                                    <td>SIAC</td>
+                                    <td>11022</td>
+                                    <td>12583</td>
+                                    <td>-</td>
+                                    <td>SOLUENERGY</td>
+                                    <td>F-NEG-COM-08</td>
+                                    <td>29/01/2026</td>
+                                    <td>Evelin Ramirez</td>
+                                    <td>04/02/2026</td>
+                                    <td>Lucia C.</td>
+                                    <td><ul class="signer-list"><li class="signer-item"><span class="status-dot status-green"></span>Evelin R.</li><li class="signer-item"><span class="status-dot status-red"></span>Cesar D.</li></ul></td>
+                                </tr>
+                                <tr>
+                                    <td><input type="checkbox" class="custom-checkbox"></td>
+                                            <td><div class="doc-icon-wrapper"><img src="~/img/pdf.jpg" alt="PDF"></div></td>
+                                    <td>Brokers</td>
+                                    <td>44844</td>
+                                    <td>-</td>
+                                    <td>9021</td>
+                                    <td>Evelin Ramirez</td>
+                                    <td>F-NEG-COM-08</td>
+                                    <td>29/01/2026</td>
+                                    <td>Evelin Ramirez</td>
+                                    <td>-</td>
+                                    <td>-</td>
+                                    <td><ul class="signer-list"><li class="signer-item"><span class="status-dot status-green"></span>Evelin Ramirez</li></ul></td>
+                                </tr>
+                                <tr>
+                                    <td><input type="checkbox" class="custom-checkbox"></td>
+                                            <td><div class="doc-icon-wrapper"><img src="~/img/pdf.jpg" alt="PDF"></div></td>
+                                    <td>SIAC</td>
+                                    <td>11023</td>
+                                    <td>-</td>
+                                    <td>-</td>
+                                    <td>EJEMPLO SA</td>
+                                    <td>F-NEG-COM-08</td>
+                                    <td>30/01/2026</td>
+                                    <td>Evelin Ramirez</td>
+                                    <td>29/01/2026</td>
+                                    <td>Evelin Ramirez</td>
+                                    <td><ul class="signer-list"><li class="signer-item"><span class="status-dot status-yellow"></span>Lucia C.</li></ul></td>
+                                </tr>
+                                <tr>
+                                    <td><input type="checkbox" class="custom-checkbox"></td>
+                                            <td><div class="doc-icon-wrapper"><img src="~/img/pdf.jpg" alt="PDF"></div></td>
+                                    <td>SIAC</td>
+                                    <td>11024</td>
+                                    <td>-</td>
+                                    <td>-</td>
+                                    <td>EMPRESA PRUEBA</td>
+                                    <td>F-NEG-COM-08</td>
+                                    <td>30/01/2026</td>
+                                    <td>Evelin Ramirez</td>
+                                    <td>03/02/2026</td>
+                                    <td>Kevin M.</td>
+                                    <td><ul class="signer-list"><li class="signer-item"><span class="status-dot status-green"></span>Kevin M.</li></ul></td>
+                                </tr>
+                                <tr>
+                                    <td><input type="checkbox" class="custom-checkbox"></td>
+                                            <td><div class="doc-icon-wrapper"><img src="~/img/pdf.jpg" alt="PDF"></div></td>
+                                    <td>BeMoney</td>
+                                    <td>14200</td>
+                                    <td>14200</td>
+                                    <td>6200</td>
+                                    <td>NUEVA EMPRESA</td>
+                                    <td>F-NEG-FIN-CRE-02</td>
+                                    <td>01/02/2026</td>
+                                    <td>Juan Perez</td>
+                                    <td>-</td>
+                                    <td>-</td>
+                                    <td><ul class="signer-list"><li class="signer-item"><span class="status-dot status-yellow"></span>Gerente</li></ul></td>
+                                </tr>
+                                <tr>
+                                    <td><input type="checkbox" class="custom-checkbox"></td>
+                                            <td><div class="doc-icon-wrapper"><img src="~/img/pdf.jpg" alt="PDF"></div></td>
+                                    <td>Brokers</td>
+                                    <td>45200</td>
+                                    <td>-</td>
+                                    <td>9100</td>
+                                    <td>COMERCIALIZADORA X</td>
+                                    <td>F-NEG-COM-08</td>
+                                    <td>02/02/2026</td>
+                                    <td>Maria Lopez</td>
+                                    <td>-</td>
+                                    <td>-</td>
+                                    <td><ul class="signer-list"><li class="signer-item"><span class="status-dot status-green"></span>Maria L.</li></ul></td>
+                                </tr>
+                                <tr>
+                                    <td><input type="checkbox" class="custom-checkbox"></td>
+                                            <td><div class="doc-icon-wrapper"><img src="~/img/pdf.jpg" alt="PDF"></div></td>
+                                    <td>SIAC</td>
+                                    <td>11025</td>
+                                    <td>12600</td>
+                                    <td>-</td>
+                                    <td>INDUSTRIAS DEL NORTE</td>
+                                    <td>F-NEG-COM-08</td>
+                                    <td>03/02/2026</td>
+                                    <td>Carlos Ruiz</td>
+                                    <td>04/02/2026</td>
+                                    <td>Ana S.</td>
+                                    <td><ul class="signer-list"><li class="signer-item"><span class="status-dot status-red"></span>Carlos R.</li></ul></td>
+                                </tr>
+                                <tr>
+                                    <td><input type="checkbox" class="custom-checkbox"></td>
+                                            <td><div class="doc-icon-wrapper"><img src="~/img/pdf.jpg" alt="PDF"></div></td>
+                                    <td>BeMoney</td>
+                                    <td>14300</td>
+                                    <td>14300</td>
+                                    <td>6300</td>
+                                    <td>LOGISTICA GLOBAL</td>
+                                    <td>F-NEG-FIN-CRE-02</td>
+                                    <td>04/02/2026</td>
+                                    <td>Juan Perez</td>
+                                    <td>-</td>
+                                    <td>-</td>
+                                    <td><ul class="signer-list"><li class="signer-item"><span class="status-dot status-green"></span>Analista</li></ul></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                
+                <div id="generales" class="section-content" style="display: none;">
+                    <div class="table-header-actions">
+                        <h2 class="table-title">Documentos Generales</h2>
+                        <button class="btn-primary"><i class="fa-solid fa-plus"></i> Nuevo</button>
+                    </div>
+                    <div class="table-container">
+                        <table id="generalesTable">
+                            <thead>
+                                <tr>
+                                    <th>Selec</th>
+                                    <th>Doc</th>
+                                    <th class="filterable-header" data-col="2">
+                                        <div class="th-content"><span>Tipo</span><i class="fa-solid fa-filter filter-icon"></i></div>
+                                        <div class="filter-dropdown"></div>
+                                    </th>
+                                    <th class="filterable-header" data-col="3">
+                                        <div class="th-content"><span>Descripción</span><i class="fa-solid fa-filter filter-icon"></i></div>
+                                        <div class="filter-dropdown"></div>
+                                    </th>
+                                    <th class="filterable-header" data-col="4">
+                                        <div class="th-content"><span>Fecha</span><i class="fa-solid fa-filter filter-icon"></i></div>
+                                        <div class="filter-dropdown"></div>
+                                    </th>
+                                    <th class="filterable-header" data-col="5">
+                                        <div class="th-content"><span>Estado</span><i class="fa-solid fa-filter filter-icon"></i></div>
+                                        <div class="filter-dropdown"></div>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><input type="checkbox" class="custom-checkbox"></td>
+                                    <td>
+                                        <button class="doc-btn" onclick="openSignModal('Política de Privacidad')">
+                                                    <img src="~/img/pdf.jpg" alt="PDF">
+                                        </button>
+                                    </td>
+                                    <td>Políticas</td>
+                                    <td>Política de Privacidad</td>
+                                    <td>01/01/2026</td>
+                                    <td>Vigente</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+               
+                <div id="vistos" class="section-content" style="display: none;">
+                    <div class="table-header-actions">
+                        <h2 class="table-title">Documentos Vistos</h2>
+                    </div>
+                    <div class="table-container">
+                        <table id="vistosTable">
+                            <thead>
+                                <tr>
+                                    <th>Selec</th>
+                                    <th>Doc</th>
+                                    <th class="filterable-header" data-col="2">
+                                        <div class="th-content"><span>Documento</span><i class="fa-solid fa-filter filter-icon"></i></div>
+                                        <div class="filter-dropdown"></div>
+                                    </th>
+                                    <th class="filterable-header" data-col="3">
+                                        <div class="th-content"><span>Visto Por</span><i class="fa-solid fa-filter filter-icon"></i></div>
+                                        <div class="filter-dropdown"></div>
+                                    </th>
+                                    <th class="filterable-header" data-col="4">
+                                        <div class="th-content"><span>Fecha</span><i class="fa-solid fa-filter filter-icon"></i></div>
+                                        <div class="filter-dropdown"></div>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><input type="checkbox" class="custom-checkbox"></td>
+                                    <td>
+                                        <button class="doc-btn" onclick="openSignModal('Contrato Marco')">
+                                                        <img src="~/img/pdf.jpg" alt="PDF">
+                                        </button>
+                                    </td>
+                                    <td>Contrato Marco</td>
+                                    <td>Juan Perez</td>
+                                    <td>02/02/2026</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+             
+                <div id="dashboard" class="section-content" style="display: none;">
+                    <div class="table-header-actions">
+                        <h2 class="table-title">Dashboard General</h2>
+                    </div>
+
+                    <div class="dashboard-grid">
+                        <!-- Fila 1: KPIs -->
+                        <div class="kpi-container">
+                            <!-- Card 1: Pendientes de Firma -->
+                            <div class="kpi-card">
+                                <div class="kpi-icon yellow">
+                                    <i class="fa-regular fa-clock"></i>
+                                </div>
+                                <div class="kpi-info">
+                                    <h3>Pendientes de Firma</h3>
+                                    <p>12</p>
+                                </div>
+                            </div>
+
+                          
+                            <div class="kpi-card">
+                                <div class="kpi-icon yellow">
+                                    <i class="fa-solid fa-pen-nib"></i>
+                                </div>
+                                <div class="kpi-info">
+                                    <h3>Firmados</h3>
+                                    <p>45</p>
+                                </div>
+                            </div>
+
+                        
+                            <div class="kpi-card">
+                                <div class="kpi-icon yellow">
+                                    <i class="fa-solid fa-paper-plane"></i>
+                                </div>
+                                <div class="kpi-info">
+                                    <h3>Enviados</h3>
+                                    <p>28</p>
+                                </div>
+                            </div>
+
+                         
+                            <div class="kpi-card">
+                                <div class="kpi-icon yellow">
+                                    <i class="fa-regular fa-clock"></i>
+                                </div>
+                                <div class="kpi-info">
+                                    <h3>Pendiente Vo.Bo</h3>
+                                    <p>5</p>
+                                </div>
+                            </div>
+                        </div>
+
+                       
+                        <div class="main-column">
+
+                          
+                            <div class="recent-docs-card">
+                                <div class="card-header">
+                                    <h3>Últimos Documentos</h3>
+                                </div>
+                          
+                                <div class="docs-list-header" style="display: flex; padding: 0 0 10px 0; border-bottom: 1px solid #f0f0f0; color: #718ebf; font-size: 12px; font-weight: 600;">
+                                    <div style="width: 40%;">No. de Documento</div>
+                                    <div style="width: 60%;">Actividad</div>
+                                </div>
+                                <ul class="docs-list">
+                                    <li class="docs-list-item">
+                                        <div class="doc-number">
+                                            <i class="fa-solid fa-rotate-right reload-icon"></i>
+                                            <span>DOC-001</span>
+                                        </div>
+                                        <div class="doc-activity">Firma completada por Gerente</div>
+                                    </li>
+                                    <li class="docs-list-item">
+                                        <div class="doc-number">
+                                            <i class="fa-solid fa-rotate-right reload-icon"></i>
+                                            <span>DOC-002</span>
+                                        </div>
+                                        <div class="doc-activity">Enviado a revisión</div>
+                                    </li>
+                                    <li class="docs-list-item">
+                                        <div class="doc-number">
+                                            <i class="fa-solid fa-rotate-right reload-icon"></i>
+                                            <span>DOC-003</span>
+                                        </div>
+                                        <div class="doc-activity">Pendiente de firma cliente</div>
+                                    </li>
+                                </ul>
+                            </div>
+
+                           
+                            <div class="chart-card">
+                                <div class="card-header">
+                                    <h3>Flujo de Actividad</h3>
+                                </div>
+                                <div class="chart-wrapper" style="display: flex; height: 100%;">
+                                  
+                                    <div class="chart-y-axis" style="display: flex; flex-direction: column; justify-content: space-between; padding-right: 10px; color: #b1b1b1; font-size: 10px; height: 80%; margin-top: auto; margin-bottom: 25px;">
+                                        <span>50</span>
+                                        <span>40</span>
+                                        <span>30</span>
+                                        <span>20</span>
+                                        <span>10</span>
+                                        <span>0</span>
+                                    </div>
+
+                                    <div class="bar-chart-container">
+                                       
+                                        <div class="chart-day">
+                                            <div class="bars-group">
+                                                <div class="bar blue" style="height: 80%;"></div> <!-- 40/50 = 80% -->
+                                                <div class="bar green" style="height: 100%;"></div> <!-- 50/50 = 100% -->
+                                            </div>
+                                            <span class="day-label">Lun</span>
+                                        </div>
+                                        
+                                        <div class="chart-day">
+                                            <div class="bars-group">
+                                                <div class="bar blue" style="height: 60%;"></div>
+                                                <div class="bar green" style="height: 40%;"></div>
+                                            </div>
+                                            <span class="day-label">Mar</span>
+                                        </div>
+                                        
+                                        <div class="chart-day">
+                                            <div class="bars-group">
+                                                <div class="bar blue" style="height: 90%;"></div>
+                                                <div class="bar green" style="height: 20%;"></div>
+                                            </div>
+                                            <span class="day-label">Mié</span>
+                                        </div>
+                                       
+                                        <div class="chart-day">
+                                            <div class="bars-group">
+                                                <div class="bar blue" style="height: 30%;"></div>
+                                                <div class="bar green" style="height: 50%;"></div>
+                                            </div>
+                                            <span class="day-label">Jue</span>
+                                        </div>
+                                       
+                                        <div class="chart-day">
+                                            <div class="bars-group">
+                                                <div class="bar blue" style="height: 70%;"></div>
+                                                <div class="bar green" style="height: 80%;"></div>
+                                            </div>
+                                            <span class="day-label">Vie</span>
+                                        </div>
+                                       
+                                        <div class="chart-day">
+                                            <div class="bars-group">
+                                                <div class="bar blue" style="height: 20%;"></div>
+                                                <div class="bar green" style="height: 10%;"></div>
+                                            </div>
+                                            <span class="day-label">Sáb</span>
+                                        </div>
+                                      
+                                        <div class="chart-day">
+                                            <div class="bars-group">
+                                                <div class="bar blue" style="height: 10%;"></div>
+                                                <div class="bar green" style="height: 5%;"></div>
+                                            </div>
+                                            <span class="day-label">Dom</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        
+                        <div class="side-column">
+
+                           
+                            <div class="calendar-card">
+                                <div class="cal-tabs">
+                                    <button class="cal-tab-btn active" onclick="switchCalTab('calendario')">Calendario</button>
+                                    <button class="cal-tab-btn" onclick="switchCalTab('vencimientos')">Vencimientos</button>
+                                </div>
+
+                                <div id="cal-tab-calendario" class="cal-tab-content active">
+                                    <div class="calendar-header">
+                                        <button class="calendar-nav-btn" onclick="changeMonth(-1)"><i class="fa-solid fa-chevron-left"></i></button>
+                                        <div style="display: flex; gap: 10px;">
+                                            <select id="calMonth" class="filter-select" style="padding: 2px 5px; font-size: 12px;" onchange="renderCalendar()">
+                                                <option value="0">Enero</option>
+                                                <option value="1">Febrero</option>
+                                                <option value="2">Marzo</option>
+                                                <option value="3">Abril</option>
+                                                <option value="4">Mayo</option>
+                                                <option value="5">Junio</option>
+                                                <option value="6">Julio</option>
+                                                <option value="7">Agosto</option>
+                                                <option value="8">Septiembre</option>
+                                                <option value="9">Octubre</option>
+                                                <option value="10">Noviembre</option>
+                                                <option value="11">Diciembre</option>
+                                            </select>
+                                            <select id="calYear" class="filter-select" style="padding: 2px 5px; font-size: 12px;" onchange="renderCalendar()">
+                                                <option value="2025">2025</option>
+                                                <option value="2026">2026</option>
+                                                <option value="2027">2027</option>
+                                            </select>
+                                        </div>
+                                        <button class="calendar-nav-btn" onclick="changeMonth(1)"><i class="fa-solid fa-chevron-right"></i></button>
+                                    </div>
+                                    <div class="calendar-grid" id="calendarGrid">
+                                      
+                                    </div>
+                                </div>
+
+                                <div id="cal-tab-vencimientos" class="cal-tab-content">
+                                    <p style="text-align: center; color: #b1b1b1; padding: 20px;">No hay vencimientos próximos.</p>
+                                </div>
+                            </div>
+                          
+                          
+                            <div class="pie-chart-card">
+                                <div class="card-header" style="width: 100%; border: none;">
+                                    <h3>Estadísticas</h3>
+                                </div>
+                                <div class="pie-chart"></div>
+                                <div class="chart-legend">
+                                    <div class="legend-item">
+                                        <span><span class="legend-color" style="background: #3498db;"></span> Mes Anterior</span>
+                                        <span>33%</span>
+                                    </div>
+                                    <div class="legend-item">
+                                        <span><span class="legend-color" style="background: #2ecc71;"></span> Este Mes</span>
+                                        <span>33%</span>
+                                    </div>
+                                    <div class="legend-item">
+                                        <span><span class="legend-color" style="background: #9b59b6;"></span> Hoy</span>
+                                        <span>34%</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+               
+                <div id="configuracion" class="section-content" style="display: none;">
+                    <div class="table-header-actions">
+                        <h2 class="table-title">Configuración</h2>
+                    </div>
+                    <div style="background: white; padding: 30px; border-radius: 25px;">
+                        <h3>Preferencias</h3>
+                        <p>Opciones de configuración aquí...</p>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    
+      <div class="modal fade" id="signatureModal" tabindex="-1">
+     
+                                <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Firmar Documento</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="signatureContainer">
+                    Cargando...
+                </div>
+            </div>
+        </div>
+    </div>
+      *@
+    

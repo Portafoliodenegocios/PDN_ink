@@ -1,0 +1,415 @@
+﻿@using Microsoft.Extensions.Configuration
+@inject IConfiguration Configuration
+@{
+    ViewData["Title"] = "Home Page";
+    Layout = "_Layout";
+    string token = ViewData["TokenRH"] as string;
+}
+<div class="table-header-actions">
+    <h2 class="table-title">Documentos Originación del Crédito</h2>
+    <div class="table-filters">
+        <button class="btn-primary" id="sendToSignBtn"><i class="fa-solid fa-paper-plane"></i> Enviar a firma</button>
+    </div>
+</div>
+<div class="table-container">
+    <table id="originacionTable">
+        <thead>
+            <tr>
+                <th>Selec</th>
+                <th>Doc</th>
+                <th class="filterable-header" data-col="2">
+                    <div class="th-content"><span>Sistema origen</span><i class="fa-solid fa-filter filter-icon"></i></div>
+                    <div class="filter-dropdown"></div>
+                </th>
+                <th class="filterable-header" data-col="3">
+                    <div class="th-content"><span># Sol</span><i class="fa-solid fa-filter filter-icon"></i></div>
+                    <div class="filter-dropdown"></div>
+                </th>
+                <th class="filterable-header" data-col="4">
+                    <div class="th-content"><span>#Crédito</span><i class="fa-solid fa-filter filter-icon"></i></div>
+                    <div class="filter-dropdown"></div>
+                </th>
+                <th class="filterable-header" data-col="5">
+                    <div class="th-content"><span>Expediente</span><i class="fa-solid fa-filter filter-icon"></i></div>
+                    <div class="filter-dropdown"></div>
+                </th>
+                <th class="filterable-header col-wide" data-col="6">
+                    <div class="th-content"><span>Razón social</span><i class="fa-solid fa-filter filter-icon"></i></div>
+                    <div class="filter-dropdown"></div>
+                </th>
+                <th class="filterable-header col-wide" data-col="7">
+                    <div class="th-content"><span>Documento</span><i class="fa-solid fa-filter filter-icon"></i></div>
+                    <div class="filter-dropdown"></div>
+                </th>
+                <th class="filterable-header" data-col="8">
+                    <div class="th-content"><span>Fecha creación</span><i class="fa-solid fa-filter filter-icon"></i></div>
+                    <div class="filter-dropdown"></div>
+                </th>
+                <th class="filterable-header" data-col="9">
+                    <div class="th-content">
+                        <span>Usuario creación</span><i class="fa-solid fa-filter filter-icon"></i>
+                    </div>
+                    <div class="filter-dropdown"></div>
+                </th>
+                <th class="filterable-header" data-col="10">
+                    <div class="th-content"><span>Fecha act.</span><i class="fa-solid fa-filter filter-icon"></i></div>
+                    <div class="filter-dropdown"></div>
+                </th>
+                <th class="filterable-header" data-col="11">
+                    <div class="th-content"><span>Usuario act.</span><i class="fa-solid fa-filter filter-icon"></i></div>
+                    <div class="filter-dropdown"></div>
+                </th>
+                <th class="filterable-header" data-col="12">
+                    <div class="th-content"><span>Firmantes</span><i class="fa-solid fa-filter filter-icon"></i></div>
+                    <div class="filter-dropdown"></div>
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><input type="checkbox" class="custom-checkbox"></td>
+                <td>
+                    <button class="doc-btn" onclick="DashboardApp.Modal.openSignModal('F-NEG-COM-08')">
+                        <img src="/img/pdf.jpg" alt="PDF">
+                    </button>
+                </td>
+                <td>Brokers/Visitas</td>
+                <td>45170</td>
+                <td>-</td>
+                <td>9067</td>
+                <td>
+                    <div class="cell-wrap">
+                        DISTRIBUIDORES AGRÍCOLAS EMPAQUE (VARIA) // PRODUCTORES EN CELAYA Y ZACATECAS
+                        (2)
+                    </div>
+                </td>
+                <td>
+                    <div class="cell-wrap">
+                        FV-SEG-FISCAL-CARRETERA A SAN ISIDRO MAZACANTEPEC NÚMERO 5215, INTERIOR A 3,
+                        COLONIA LOS TEPETATES, MUNICIPIO TLAJOMULCO DE ZÚÑIGA, J-24132.pdf
+                    </div>
+                </td>
+                <td>28/01/2026</td>
+                <td>Marco Antonio Palacios Aguirre</td>
+                <td>-</td>
+                <td>usrcrtlderiesgo Ambiente de Pruebas</td>
+                <td>
+                    <ul class="signer-list">
+                        <li class="signer-item">
+                            <span class="status-dot status-green"></span>usrtestcerrador Pruebas Brokers
+                        </li>
+                    </ul>
+                </td>
+            </tr>
+            <tr>
+                <td><input type="checkbox" class="custom-checkbox"></td>
+                <td>
+                    <button class="doc-btn" onclick="DashboardApp.Modal.openSignModal('F-NEG-FIN-CRE-02')">
+                        <img src="/img/pdf.jpg" alt="PDF">
+                    </button>
+                </td>
+                <td>BeMoney</td>
+                <td>14100</td>
+                <td>14100</td>
+                <td>6119</td>
+                <td>
+                    <div class="cell-wrap">
+                        Fundacion Mexicana de Fomento Educativo Para La Prevencion Oportuna del
+                        Cancer de Mama
+                    </div>
+                </td>
+                <td>
+                    <div class="cell-wrap">
+                        RFC-CONSTANCIA-COMERCIALIZADORA DE PRODUCTOS PARA LA INVESTIGACION Y LA
+                        SALUD, S.A. DE C.V.-062024-26782.pdf
+                    </div>
+                </td>
+                <td>29/01/2026</td>
+                <td>Maria Esperanza Gonzalez Padilla</td>
+                <td>05/02/2026</td>
+                <td>Carlos Garcia Mangin Gammeltoft</td>
+                <td>
+                    <ul class="signer-list">
+                        <li class="signer-item">
+                            <span class="status-dot status-green"></span>Josebeth Karina Oropeza Olvera
+                        </li>
+                        <li class="signer-item">
+                            <span class="status-dot status-yellow"></span>Luis Gerardo Gonzalez de Jesus
+                        </li>
+                    </ul>
+                </td>
+            </tr>
+            <tr>
+                <td><input type="checkbox" class="custom-checkbox"></td>
+                <td>
+                    <div class="doc-icon-wrapper"><img src="/img/pdf.jpg" alt="PDF"></div>
+                </td>
+                <td>SIAC</td>
+                <td>11022</td>
+                <td>12583</td>
+                <td>-</td>
+                <td>
+                    <div class="cell-wrap">
+                        Fondo de Fomento y Desarrollo de La Investigacion Cientifica y Tecnologica de
+                        La Universidad Autonoma del Estado de Mexico
+                    </div>
+                </td>
+                <td>
+                    <div class="cell-wrap">
+                        RFC-CONSTANCIA-COMERCIALIZADORA DE PRODUCTOS PARA LA INVESTIGACION Y LA
+                        SALUD, S.A. DE C.V.-062024-26782.pdf
+                    </div>
+                </td>
+                <td>29/01/2026</td>
+                <td>Jose Francisco Quiterio Palacios</td>
+                <td>04/02/2026</td>
+                <td>Multimedia Video Conferencia 2</td>
+                <td>
+                    <ul class="signer-list">
+                        <li class="signer-item">
+                            <span class="status-dot status-green"></span>Rogelio Enrique Fragoso
+                            Gutierrez
+                        </li>
+                        <li class="signer-item"><span class="status-dot status-red"></span>Cesar D.</li>
+                    </ul>
+                </td>
+            </tr>
+            <tr>
+                <td><input type="checkbox" class="custom-checkbox"></td>
+                <td>
+                    <div class="doc-icon-wrapper"><img src="/img/pdf.jpg" alt="PDF"></div>
+                </td>
+                <td>Brokers</td>
+                <td>44844</td>
+                <td>-</td>
+                <td>9021</td>
+                <td>
+                    <div class="cell-wrap">
+                        ORGANISMO PUBLICO DESCENTRALIZADO PARA LA PRESTACION DE LOS SERVICIOS DE AGUA
+                        POTABLE, ALCANTARILLADO Y SANEAMIENTO DEL MUNICIPIO DE ECATEPEC
+                    </div>
+                </td>
+                <td>
+                    <div class="cell-wrap">
+                        BR-AUTORIZACION-INGENIERIA Y METROLOGIA CERTIFICADA PARA CALIBRACION DE
+                        EQUIPOS DE CONTROL Y PRUEBAS, S.A. DE C.V.-18749.pdf
+                    </div>
+                </td>
+                <td>29/01/2026</td>
+                <td>Alexis Armando Castro Hernandez</td>
+                <td>-</td>
+                <td>Francisco Xavier Jovanny Almaraz Rodriguez</td>
+                <td>
+                    <ul class="signer-list">
+                        <li class="signer-item">
+                            <span class="status-dot status-green"></span>Usuario Externo Pruebas Correo
+                        </li>
+                    </ul>
+                </td>
+            </tr>
+            <tr>
+                <td><input type="checkbox" class="custom-checkbox"></td>
+                <td>
+                    <div class="doc-icon-wrapper"><img src="/img/pdf.jpg" alt="PDF"></div>
+                </td>
+                <td>SIAC</td>
+                <td>11023</td>
+                <td>-</td>
+                <td>09/03/2026</td>
+                <td>
+                    <div class="cell-wrap">
+                        INSTITUTO DE INFORMACION E INVESTIGACION GEOGRAFICA, ESTADISTICA Y CATASTRAL
+                        DEL ESTADO DE MEXICO
+                    </div>
+                </td>
+                <td>
+                    <div class="cell-wrap">
+                        OT-REPORTE FACTURACION SEPTIEMBRE, OCTUBRE Y NOVIEMBRE 2025 CENTRO SUPERIOR
+                        DE ESTUDIOS DE LA COMUNICACION SC-32801.pdf
+                    </div>
+                </td>
+                <td>30/01/2026</td>
+                <td>usrtestocumplimiento Ambiente de Pruebas</td>
+                <td>29/01/2026</td>
+                <td>Jose Carlos Hermandez Martinez|</td>
+                <td>
+                    <ul class="signer-list">
+                        <li class="signer-item">
+                            <span class="status-dot status-yellow"></span>usrtestdircomercial Ambiente
+                            de pruebas
+                        </li>
+                    </ul>
+                </td>
+            </tr>
+            <tr>
+                <td><input type="checkbox" class="custom-checkbox"></td>
+                <td>
+                    <div class="doc-icon-wrapper"><img src="/img/pdf.jpg" alt="PDF"></div>
+                </td>
+                <td>SIAC</td>
+                <td>11024</td>
+                <td>-</td>
+                <td>-</td>
+                <td>
+                    <div class="cell-wrap">
+                        PROVEEDORA DE BIENES Y SERVICIOS EN TECNOLOGIA GARU, SA DE CV (EQUIPOS,
+                        CONSUMIBLES Y DESARROLLADORES DE LENGUAJE)
+                    </div>
+                </td>
+                <td>
+                    <div class="cell-wrap">
+                        POR-OPERADORA DE INSTALACIONES TURISTICAS Y DESARROLLOS INMOBILIARIOS SA DE
+                        CV-REFORMA-REVOCACION DE PODERES 32,171.pdf
+                    </div>
+                </td>
+                <td>30/01/2026</td>
+                <td>Lourdes Berenice Carrillo Verboonen</td>
+                <td>03/02/2026</td>
+                <td>Usmail Administrador de Correo</td>
+                <td>
+                    <ul class="signer-list">
+                        <li class="signer-item">
+                            <span class="status-dot status-green"></span>Luis Fernando Martinez
+                            Hernandez
+                        </li>
+                    </ul>
+                </td>
+            </tr>
+            <tr>
+                <td><input type="checkbox" class="custom-checkbox"></td>
+                <td>
+                    <div class="doc-icon-wrapper"><img src="/img/pdf.jpg" alt="PDF"></div>
+                </td>
+                <td>BeMoney</td>
+                <td>14200</td>
+                <td>14200</td>
+                <td>6200</td>
+                <td>
+                    <div class="cell-wrap">
+                        INTEGRALLIA ADMINISTRACION: SERVICIOS ESPECIALIZADOS EN ADMINISTRACION DE
+                        INMUEBLES Y SEGURIDAD PRIVADA SA DE CV
+                    </div>
+                </td>
+                <td>
+                    <div class="cell-wrap">
+                        CD-EDGAR MANZANO JUAREZ-SUSAN HERNADEZ MARTINEZ-PARTICULAR-ESTRATEGIA EN
+                        CONSTRUCCION INTELIGENTE-FISCAL-OFICINA.pdf
+                    </div>
+                </td>
+                <td>01/02/2026</td>
+                <td>Kathia Sheresada Negrete Mendoza</td>
+                <td>-</td>
+                <td>Administrador Acceso Aplicativos por RPA</td>
+                <td>
+                    <ul class="signer-list">
+                        <li class="signer-item">
+                            <span class="status-dot status-yellow"></span>Artemisa Haydee Garcilazo
+                            Gonzalez
+                        </li>
+                    </ul>
+                </td>
+            </tr>
+            <tr>
+                <td><input type="checkbox" class="custom-checkbox"></td>
+                <td>
+                    <div class="doc-icon-wrapper"><img src="/img/pdf.jpg" alt="PDF"></div>
+                </td>
+                <td>Brokers</td>
+                <td>45200</td>
+                <td>-</td>
+                <td>9100</td>
+                <td>
+                    <div class="cell-wrap">
+                        CONSTRUCCIÓN Y CONSERVACIÓN DE OBRAS,CARRETERAS Y SERVICIOS DE
+                        INFRAESTRUCTURA Y ADMINISTRACIÓN SA DE CV
+                    </div>
+                </td>
+                <td>
+                    <div class="cell-wrap">
+                        RFC-CONSTANCIA-ACREDITADO-INTEGRACION DE SOLUCIONES ELECTRICAS Y DE
+                        MANTENIMIENTO INTELICAM SA DE CV-012026-33315.pdf
+                    </div>
+                </td>
+                <td>02/02/2026</td>
+                <td>Jorge Efred Fernandez Arellano</td>
+                <td>-</td>
+                <td>Ximena Stephany Santos Cordero</td>
+                <td>
+                    <ul class="signer-list">
+                        <li class="signer-item">
+                            <span class="status-dot status-green"></span>Juan Pablo Epifanio Hernandez
+                            Castillo.
+                        </li>
+                    </ul>
+                </td>
+            </tr>
+            <tr>
+                <td><input type="checkbox" class="custom-checkbox"></td>
+                <td>
+                    <div class="doc-icon-wrapper"><img src="/img/pdf.jpg" alt="PDF"></div>
+                </td>
+                <td>SIAC</td>
+                <td>11025</td>
+                <td>12600</td>
+                <td>-</td>
+                <td>
+                    <div class="cell-wrap">
+                        DESARROLLADORA DE INGENIERIA CONSTRUCCION Y SUMINISTRO DE AGREGADOS PETREOS
+                        SERVICIOS AMBIENTALES Y PORTUARIOS S.A. DE C.V.
+                    </div>
+                </td>
+                <td>
+                    <div class="cell-wrap">
+                        OT-EG-BUSQUEDA-87,147 DOMICILIO UBICADO EN CALLE LAGO CHAKNOCHUK 401,
+                        FRACCIONAMIENTO CUMBRES DEL LAGO , QUERÉTARO QUERÉTARO , C.P.76230-31896.pdf
+                    </div>
+                </td>
+                <td>03/02/2026</td>
+                <td>Carlos Ruiz</td>
+                <td>04/02/2026</td>
+                <td>Maria del Carmen Rodriguez Hernandez</td>
+                <td>
+                    <ul class="signer-list">
+                        <li class="signer-item">
+                            <span class="status-dot status-red"></span>Mauricio Alejandro Herrera Noguez
+                        </li>
+                    </ul>
+                </td>
+            </tr>
+            <tr>
+                <td><input type="checkbox" class="custom-checkbox"></td>
+                <td>
+                    <div class="doc-icon-wrapper"><img src="/img/pdf.jpg" alt="PDF"></div>
+                </td>
+                <td>BeMoney</td>
+                <td>14300</td>
+                <td>14300</td>
+                <td>6300</td>
+                <td>
+                    <div class="cell-wrap">
+                        FUNDACIÓN MEXICANA DE FOMENTO EDUCATIVO PARA LA PREVENCIÓN OPORTUNA DE CÁNCER
+                        DE MAMA AC FUCAM
+                    </div>
+                </td>
+                <td>
+                    <div class="cell-wrap">
+                        BR-AUTORIZACION-DESARROLLADORA DE INGENIERIA CONSTRUCCION Y SUMINISTRO DE
+                        AGREGADOS PETREOS SERVICIOS AMBIENTALES Y PORTUARIOS S.A. DE C.V.-29669.pdf
+                    </div>
+                </td>
+                <td>04/02/2026</td>
+                <td>Juan Perez</td>
+                <td>09/03/2026</td>
+                <td>Marco Antonio Barriguete Hernandez</td>
+                <td>
+                    <ul class="signer-list">
+                        <li class="signer-item">
+                            <span class="status-dot status-green"></span>Notificaciones Validador de
+                            Facturas
+                        </li>
+                    </ul>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>

@@ -1,0 +1,195 @@
+﻿@page "/Spreadsheet"
+@model HR_Templates.Pages.SpreadsheetModel
+@using DevExpress.AspNetCore;
+@inject Microsoft.AspNetCore.Hosting.IWebHostEnvironment env
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
+@using DevExpress.Spreadsheet
+@using Microsoft.AspNetCore.Http.Features
+@using System.IO
+
+ @{
+    var documentPath = string.Empty;
+     var NameFileout = string.Empty;
+    var context_ = HttpContext;
+
+    if (@ViewData["NameTemplate"] != null)
+    {
+
+        const string Z = "NameTemplate";
+        string NameFilext = @ViewData[Z].ToString();
+
+        documentPath = System.IO.Path.Combine(
+                                env.ContentRootPath,
+                                DirectoryManagmentUtils.GetDocumentSampleFolderPath(HttpContext), 
+                                NameFilext
+                                );
+
+
+    }
+
+    if (@ViewData["NameFile"] != null)
+    {
+        const string V = "NameFile";
+        NameFileout = @ViewData[V]?.ToString();
+    }
+
+}
+<script>
+
+    window.APP_CONFIG = 
+          {
+                documentName: @Html.Raw(Json.Serialize(NameFileout)),
+                token: "@Antiforgery.GetAndStoreTokens(HttpContext).RequestToken"
+         };
+ </script>
+   
+ <script src="~/hr/js/signature.js"></script>
+ <script src="~/hr/js/api.js"></script>
+ <script src="~/hr/js/spreadsheet.js"></script>
+
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<link href="~/hr/lib/devextreme-dist/css/dx.light.css" rel="stylesheet" />
+<script src="~/hr/lib/devextreme-dist/js/dx.all.js"></script> 
+<link rel="stylesheet" href="~/hr/lib/bootstrap/dist/css/bootstrap.min.css" />
+<link href="~/hr/lib/devexpress-aspnetcore-spreadsheet/dist/dx-aspnetcore-spreadsheet.css" rel="stylesheet" />
+<script src="~/hr/lib/devexpress-aspnetcore-spreadsheet/dist/dx-aspnetcore-spreadsheet.js"></script> 
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<form id="formExport" method="post">
+    <input name="SpreadsheetWorkSessionId" type="hidden" value="" />
+</form>
+
+ <script> 
+
+  function updateSignatureButtonState(s, enabled) {
+  
+     var ribbon = s.GetRibbon();
+ 
+    if (ribbon) 
+    {       
+        var item = ribbon.GetItemByName("FirmarDocumento"); 
+        if (item) 
+        {
+            item.SetEnabled(enabled);
+        }
+    }
+}
+
+    function onCellBeginEdit(s, e) 
+    {
+        updateSignatureButtonState(s, false);
+    }
+
+    function onCellEndEdit(s, e) 
+    {
+        updateSignatureButtonState(s, true);
+    }
+
+    function onCellBeginEdit(s, e) 
+    {
+         updateSignatureButtonState(s, false);
+    }
+
+    function onCellEndEdit(s, e) 
+    {   
+        updateSignatureButtonState(s, true);
+    }
+
+     function spreadsheet_beforeSend(spreadsheet, e) {
+    e.request.setRequestHeader("RequestVerificationToken",
+                                "@Antiforgery.GetAndStoreTokens(context_).RequestToken");
+  }
+
+  //Funcion del botton del Ribbon
+    function onCustomCommandExecuted(s, e) 
+    {    
+        debugger;
+       switch (e.commandName) {
+           case 'FirmarDocumento':       
+               // openSignaturePopup(NAME_FILE);
+              SignatureModule.open(window.APP_CONFIG.documentName);
+           break;   
+       }
+    }
+
+
+    // let isSaving = false;
+
+
+
+
+    // // // function GenerateFileSign()
+    // // // {
+    // // //   var spreadsheet = ASPxClientControl.GetControlCollection().GetByName("spreadsheet");
+    // // //   var spreadsheetState = spreadsheet.GetSpreadsheetState();
+      
+   
+    // // // fetch('/Spreadsheet?handler=RibbonSaveToFile', 
+    // // //  {
+    // // //     method: 'POST',
+    // // //     headers: {
+    // // //         'Content-Type': 'application/json'
+    // // //     },
+    // // //     body: JSON.stringify(
+    // // //                           { spreadsheetState: spreadsheetState,
+    // // //                            namefile:  window.APP_CONFIG.documentName 
+    // // //                           }
+    // // //                         )
+    // // //  })
+    // // // .then(res => Swal.fire("Se envio el documento \"" + NAME_FILE + "\" al sistema PDNink.", "", "success")  )
+    // // // .catch(err => console.error(err));
+    // // // }
+</script>
+ @* Control Spreedsheet *@
+@(
+Html.DevExpress()
+    .Spreadsheet("spreadsheet")
+    .Width("100%")
+    .Height("800px")
+    .Ribbon(ribbon => ribbon
+         .Visible(true)        
+         .Tabs(tabs => {
+               tabs.Clear();
+               tabs.Add()
+                   .Title("✍️")
+                   .Items(items => {
+                          items.AddButton()
+                               .Text("Firmar documento")
+                               .CommandName("FirmarDocumento")
+                               .ShowText(true)
+                               .Icon("edit");
+                          items.AddPrintItem().BeginGroup(true);  
+                   });
+         })
+         )
+    .ClientSideEvents(events => {
+                       events.OnCustomCommandExecuted("onCustomCommandExecuted");
+                       events.OnBeforeSend("spreadsheet_beforeSend");
+                       events.OnCellBeginEdit("onCellBeginEdit");
+                       events.OnCellEndEdit("onCellEndEdit");
+                   })
+    .ConfirmOnLosingChanges(confirm => confirm.Enabled(false))
+    .DocumentRequestHandlerUrl("Spreadsheet?handler=DxSpreadsheetRequest")               
+    .Open(documentPath)
+)
+ 
+         
+
+
+
+<!-- MODAL DE FIRMA -->
+<div class="modal fade" id="signatureModal" tabindex="-1">
+    @*  <div class="modal-dialog modal-lg"> *@
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"> ✍ Firmar Documento</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="signatureContainer">
+                Cargando...
+            </div>
+        </div>
+    </div>
+</div>

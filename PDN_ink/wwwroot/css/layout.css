@@ -1,0 +1,129 @@
+/* --- Main Layout --- */
+.dashboard-container {
+    display: flex;
+    height: 100vh;
+}
+
+.main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+}
+
+.content-area {
+    flex: 1;
+    padding: 0px;
+    overflow: auto;
+}
+
+/* --- Sidebar --- */
+.sidebar {
+    width: 250px;
+    background-color: var(--sidebar-bg);
+    border-right: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    transition: width 0.3s ease, transform 0.3s ease;
+    flex-shrink: 0;
+    z-index: 1000;
+}
+
+.sidebar.collapsed {
+    width: 80px;
+}
+
+.sidebar-header {
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100px;
+    transition: all 0.3s ease;
+}
+
+.sidebar-nav {
+    flex: 1;
+    padding-top: 20px;
+    overflow-y: auto;
+}
+
+/* --- Top Bar --- */
+.top-bar {
+    background-color: var(--sidebar-bg);
+    padding: 20px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border-color);
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.page-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.toggle-btn {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: var(--text-primary);
+}
+
+.top-actions {
+    display: flex;
+    align-items: center;
+    gap: 25px;
+}
+
+/* --- Responsive Layout Adjustments --- */
+@media (max-width: 1200px) {
+    .top-bar {
+        padding: 20px;
+    }
+}
+
+@media (max-width: 992px) {
+    .sidebar {
+        position: absolute;
+        height: 100%;
+        transform: translateX(-100%);
+    }
+
+    .sidebar.active {
+        transform: translateX(0);
+        box-shadow: 0 0 30px rgba(0,0,0,0.1);
+    }
+
+    .sidebar.collapsed {
+        transform: translateX(-100%);
+    }
+
+    .toggle-btn {
+        display: block; /* Always show on smaller screens */
+    }
+}
+
+@media (max-width: 768px) {
+    .content-area {
+        padding: 15px;
+    }
+
+    .top-bar {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .page-title {
+        width: 100%;
+        justify-content: space-between;
+    }
+}
