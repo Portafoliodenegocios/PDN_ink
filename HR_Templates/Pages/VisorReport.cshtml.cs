@@ -6,125 +6,98 @@ using DevExpress.CodeParser.Diagnostics;
 using DevExpress.Spreadsheet;
 using DevExpress.XtraSpreadsheet.DocumentFormats.Xlsb;
 using HR_Templates.Models;
+using HR_Templates.Proxys;
 using HR_Templates.Utils;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using Microsoft.SqlServer.ReportingServices2010;
 using System.Net;
+using System.Security.Cryptography;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
 using System.ServiceModel.Description;
 using System.ServiceModel.Dispatcher;
 using RS = ReportingServices;
 
+
+
 namespace HR_Templates.Pages
 {
+
+    //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public class VisorReportModel : PageModel
     {
+        private readonly IWebHostEnvironment _env;
+
+        private readonly IConfiguration _configuration;
+
         [BindProperty(SupportsGet = true)]
         public string Name { get; set; }
 
         [BindProperty(SupportsGet = true)]
-        public string Extension { get; set; }
-        public void OnGet()
-        {
-            ViewData["NameTemplate"] = $"{Name}.{Extension}";
-            ViewData["NameFile"] = $"{Name}";
-        }
+        public int Id { get; set; }
 
-        private readonly IWebHostEnvironment _env;
-       
-        private readonly IConfiguration _configuration;
-        public VisorReportModel( IWebHostEnvironment env, IConfiguration configuration) 
-        {            
+        [BindProperty(SupportsGet = true)]
+        public string Extension { get; set; }
+
+        public string Token_ { get; set; }
+
+        public VisorReportModel(IWebHostEnvironment env, IConfiguration configuration)
+        {
             _env = env;
             _configuration = configuration;
         }
-            
-        [IgnoreAntiforgeryToken]
-        public async Task<IActionResult> OnGetLoadReport(string creditId, string reportId)
+
+        public async System.Threading.Tasks.Task OnGet(string access_token)
         {
-            try
-            {
-                if (string.IsNullOrEmpty(creditId) || string.IsNullOrEmpty(reportId))
-                    return BadRequest("Parámetros inválidos");
 
-                string reportName = "PepsFormatDetermination";
+            Token_ = access_token;
+         var result = await PDNInk_Report_Type_OptionCBR
+               .Instance
+               .GetBy($"Is_Active = True AND Document_Option_Id = {Id}");
 
-                var parameters = new Dictionary<string, object>
-               {
-                  { "Credit_Id", creditId }
-               };
-
-                byte[] reportContent = await RenderReport(reportName, parameters, null);
-
-                if (reportContent == null || reportContent.Length == 0)
-                    return StatusCode(500, "No se pudo generar el reporte");
-
-                Response.Headers.Add("Content-Disposition", "inline; filename=reporte.pdf");
-
-                return File(reportContent, "application/pdf");
-            }
-            catch
-            {
-                return StatusCode(500, "Error");
+        if (result.Count >  0)
+           {
+                var rpttypeopt =  result.FirstOrDefault();
+                ViewData["NameReport"] = rpttypeopt?.Report_File;
+                ViewData["FullName"] = Name;
             }
         }
 
-        [IgnoreAntiforgeryToken]
-        public async Task<IActionResult> OnPostLoadReport(string creditId, string reportId)
-        {
 
-            var reportSettings = _configuration.GetSection("ReportServer");
-
-            try
-            {
-                if (string.IsNullOrEmpty(creditId) || string.IsNullOrEmpty(reportId))
-                    return BadRequest("Parámetros inválidos");
-
-                string reportName = string.Empty;
-                IDictionary<string, object> parameters = null;
-
-                //  rptPersonalLoanApplication
-
-                reportName = "PepsFormatDetermination";
-                parameters = new Dictionary<string, object> { { "Credit_Id", creditId } };
-
-
-                byte[] reportContent = await RenderReport(reportName, parameters, null);
-
-                if (reportContent == null || reportContent.Length == 0)
-                    return StatusCode(500, "No se pudo generar el reporte");
-
-                string pdfName = $"{creditId}_{reportName}_{DateTime.Now:yyyyMddTHHmmss}.pdf";
-
-                return File(reportContent, "application/pdf", pdfName);
-            }
-            catch (Exception ex)
-            {
-                string msg = $"[EXCEPTION] {ex.GetType().Name}: {ex.Message}";
-                msg = msg + $"[STACK] {ex.StackTrace}";
-                msg = msg + $"[DATA] creditId={creditId}, reportId={reportId}";
-
-                return StatusCode(500, "Ocurrió un error inesperado al generar el reporte");
-            }
-
-
-        }
-      
-        
         [IgnoreAntiforgeryToken]
         public async Task<IActionResult> OnPostGenerateReport([FromBody] ReportRequest model)
         {
             try
             {
-                string reportName = "PepsFormatDetermination";
-                var parameters = new Dictionary<string, object>
-                    {
-                        { "Credit_Id", model.CreditId }
-                    };
+                string reportName = model.ReportName;
+                string Namefull =  model.Fullname;
+
+                IDictionary<string, object> parameters = null;
+
+                switch (reportName)
+                {
+                    case "rptAcceptanceScholarship":
+                        parameters = new Dictionary<string, object> { { "rpFecha", DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss") },{ "rpNombre", Namefull } };
+                       
+
+                        break;
+                    case "2":
+                        Console.WriteLine("Martes");
+                        break;
+                    case "3":
+                        Console.WriteLine("Miércoles");
+                        break;
+                    default:
+                        Console.WriteLine("Otro día");
+                        break;
+                }
+
+               
 
                 byte[] reportContent = await RenderReport(reportName, parameters, null);
 
@@ -140,7 +113,7 @@ namespace HR_Templates.Pages
                 string path = Path.Combine(folder, fileName);
                 System.IO.File.WriteAllBytes(path, reportContent);
 
-              
+
                 return new JsonResult(new { success = true, url = "/signatures/" + fileName });
             }
             catch (Exception ex)
@@ -150,8 +123,12 @@ namespace HR_Templates.Pages
         }
 
 
-        protected async Task<byte[]> RenderReport(string reportName, IDictionary<string, object> parameters, string reportFolder)
+        protected async Task<byte[]> RenderReport(string reportName, IDictionary<string, object> parameters, string reportFolder) //object> parameters,
         {
+            try
+            {
+
+           
 
             var reportSettings = _configuration.GetSection("ReportServer");
             string reportPath = $"/{reportFolder ?? reportSettings["ReportsFolder"]}/{reportName}";
@@ -190,12 +167,12 @@ namespace HR_Templates.Pages
             execHeader.ExecutionID = taskLoadReport.executionInfo.ExecutionID;
 
 
-            RS.ParameterValue[] reportParameters = null;
-            if (parameters != null && parameters.Count > 0)
-                reportParameters = taskLoadReport.executionInfo.Parameters.Where(x => parameters.ContainsKey(x.Name))
-                    .Select(x => new RS.ParameterValue() { Name = x.Name, Value = parameters[x.Name].ToString() }).ToArray();
+                RS.ParameterValue[] reportParameters = null;
+                if (parameters != null && parameters.Count > 0)
+                    reportParameters = taskLoadReport.executionInfo.Parameters.Where(x => parameters.ContainsKey(x.Name))
+                        .Select(x => new RS.ParameterValue() { Name = x.Name, Value = parameters[x.Name].ToString() }).ToArray();
 
-            var equest2 = new RS.SetExecutionParametersRequest()
+                var equest2 = new RS.SetExecutionParametersRequest()
             {
                 ExecutionHeader = execHeader,
                 TrustedUserHeader = null,//trustedUserHeader,
@@ -209,7 +186,92 @@ namespace HR_Templates.Pages
             var response =
                 await reportClient.RenderAsync(new RS.RenderRequest(execHeader, null, "PDF", deviceInfo));//(execHeader, trustedUserHeader, "PDF", deviceInfo));
             return response.Result;
+
+            }
+            catch (Exception ex )
+            {
+
+                throw ex;
+            }
         }
+
+
+
+        //[IgnoreAntiforgeryToken]
+        //public async Task<IActionResult> OnGetLoadReport(string creditId, string reportId)
+        //{
+        //    try
+        //    {
+        //        if (string.IsNullOrEmpty(creditId) || string.IsNullOrEmpty(reportId))
+        //            return BadRequest("Parámetros inválidos");
+
+        //        string reportName = "PepsFormatDetermination";
+
+        //        var parameters = new Dictionary<string, object>
+        //       {
+        //          { "Credit_Id", creditId }
+        //       };
+
+        //        byte[] reportContent = await RenderReport(reportName, parameters, null);
+
+        //        if (reportContent == null || reportContent.Length == 0)
+        //            return StatusCode(500, "No se pudo generar el reporte");
+
+        //        Response.Headers.Add("Content-Disposition", "inline; filename=reporte.pdf");
+
+        //        return File(reportContent, "application/pdf");
+        //    }
+        //    catch
+        //    {
+        //        return StatusCode(500, "Error");
+        //    }
+        //}
+
+        //[IgnoreAntiforgeryToken]
+        //public async Task<IActionResult> OnPostLoadReport(string creditId, string reportId)
+        //{
+
+        //    var reportSettings = _configuration.GetSection("ReportServer");
+
+        //    try
+        //    {
+        //        if (string.IsNullOrEmpty(creditId) || string.IsNullOrEmpty(reportId))
+        //            return BadRequest("Parámetros inválidos");
+
+        //        string reportName = string.Empty;
+        //        IDictionary<string, object> parameters = null;
+
+        //        //  rptPersonalLoanApplication
+
+        //        reportName = "PepsFormatDetermination";
+        //        parameters = new Dictionary<string, object> { { "Credit_Id", creditId } };
+
+
+        //        byte[] reportContent = await RenderReport(reportName, parameters, null);
+
+        //        if (reportContent == null || reportContent.Length == 0)
+        //            return StatusCode(500, "No se pudo generar el reporte");
+
+        //        string pdfName = $"{creditId}_{reportName}_{DateTime.Now:yyyyMddTHHmmss}.pdf";
+
+        //        return File(reportContent, "application/pdf", pdfName);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        string msg = $"[EXCEPTION] {ex.GetType().Name}: {ex.Message}";
+        //        msg = msg + $"[STACK] {ex.StackTrace}";
+        //        msg = msg + $"[DATA] creditId={creditId}, reportId={reportId}";
+
+        //        return StatusCode(500, "Ocurrió un error inesperado al generar el reporte");
+        //    }
+
+
+        //}
+
+
+
+
+
 
 
 
@@ -221,8 +283,6 @@ namespace HR_Templates.Pages
             var bytes = Convert.FromBase64String(base64Data);
             var path = Path.Combine("wwwroot/signatures", $"{request.DocumentName}.png");
             System.IO.File.WriteAllBytes(path, bytes);
-
-
 
             var SignFile = Path.Combine("wwwroot/signatures", $"{request.DocumentName}.png");
             var originalPdf = Path.Combine("wwwroot/signatures", $"{request.DocumentName}.pdf");
@@ -249,11 +309,6 @@ namespace HR_Templates.Pages
                 if (!System.IO.File.Exists(signedPdf))
                     throw new Exception("No se creó el archivo firmado físicamente.");
             }
-
-
-
-
-
             return new JsonResult(new { success = true });
         }
 

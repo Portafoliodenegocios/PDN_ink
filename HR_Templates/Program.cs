@@ -1,6 +1,11 @@
 using DevExpress.AspNetCore;
+using DevExpress.CodeParser;
 using DevExpress.Web.Office;
+using HR_Templates.Helpers;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.StaticFiles;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -36,6 +41,65 @@ builder.Services.AddDevExpressControls(options =>
         }
     );
 });
+
+
+// ...
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        string rawSecret = "esta es la clave para firmar el token y asi validar su integridad en la aplicaci�n cliente";
+
+        // Replicamos EXACTAMENTE lo que pusiste en el generador:
+        // System.Text.Encoding.UTF8.GetBytes(signingsecret.ToBase64())
+        var secretWithBase64 = Convert.ToBase64String(Encoding.UTF8.GetBytes(rawSecret));
+        var finalKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretWithBase64));
+
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = finalKey,
+
+            ValidateIssuer = true,
+            ValidIssuer = "VD.Api",
+
+            ValidateAudience = true,
+            ValidAudience = "pw.delmoci.vd",
+
+            ValidateLifetime = true,
+            ClockSkew = TimeSpan.FromMinutes(5)
+        };
+
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                // Leemos el token de la URL
+                var accessToken = context.Request.Query["access_token"].ToString();
+
+                if (!string.IsNullOrEmpty(accessToken))
+                {
+                    // Si el token viene con la palabra "Bearer ", se la quitamos
+                    if (accessToken.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+                    {
+                        context.Token = accessToken.Substring(7);
+                    }
+                    else
+                    {
+                        context.Token = accessToken;
+                    }
+                }
+                return Task.CompletedTask;
+            },
+            OnAuthenticationFailed = context =>
+            {
+                // Esto te ayudará a ver en la consola de VS por qué falló exactamente
+                System.Diagnostics.Debug.WriteLine("Fallo de autenticación: " + context.Exception.Message);
+                return Task.CompletedTask;
+            }
+        };
+    });
+
 
 builder.WebHost.ConfigureKestrel(options =>
 {

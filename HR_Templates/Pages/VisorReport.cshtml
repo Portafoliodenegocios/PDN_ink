@@ -3,39 +3,19 @@
 @Html.AntiForgeryToken()
 @inject Microsoft.AspNetCore.Hosting.IWebHostEnvironment env
 @{
-    var documentPath = string.Empty;
-    var NameFileout = string.Empty;
+    var Namerpt = string.Empty;
+    var Fullname = string.Empty;
     var context_ = HttpContext;
+    Layout = null;      
 
-
-    Layout = null;
-
-    
-    if (@ViewData["NameTemplate"] != null)
+    if (@ViewData["NameReport"] != null)
     {
-
-        const string Z = "NameTemplate";
-        string NameFilext = @ViewData[Z].ToString();
-
-        documentPath = System.IO.Path.Combine(
-                                env.ContentRootPath,
-                                DirectoryManagmentUtils.GetDocumentSampleFolderPath(HttpContext),
-                                NameFilext
-                                );
-
-
+        const string V = "NameReport";
+        Namerpt = @ViewData[V]?.ToString();
+        Fullname = @ViewData["FullName"]?.ToString();
     }
-
-    if (@ViewData["NameFile"] != null)
-    {
-        const string V = "NameFile";
-        NameFileout = @ViewData[V]?.ToString();
-    }
-
-}
 }
 
-   
 <script src="~/hr/js/signature.js"></script>
 <script src="~/hr/js/api.js"></script>
 
@@ -143,9 +123,9 @@
                 ✍ Firmar Documento
             </button>
 
-            <button class="btn btn-secondary" onclick="window.close()">
+          @*   <button class="btn btn-secondary" onclick="window.close()">
                 Cerrar
-            </button>
+            </button> *@
         </div>
 
     </div>
@@ -179,24 +159,33 @@
 
     <script>
 
-        const NameFile_ = @Html.Raw(Json.Serialize(NameFileout));
-
-    
+        const NameFile_ = @Html.Raw(Json.Serialize(Namerpt));
+        const FullName_ = @Html.Raw(Json.Serialize(Fullname));
+        debugger;
         document.addEventListener("DOMContentLoaded", function () {
 
-        const data = { CreditId:"97812", ReportId: "1",   ReportName:NameFile_ };
-
+        Swal.fire({
+            title: "Espere un momento por favor",
+            allowOutsideClick: false,
+        didOpen: () => 
+            {
+              Swal.showLoading();
+            }
+        });
+        debugger;
+        const data = { ReportName:NameFile_ ,Fullname:FullName_  };
+        debugger;
         fetch('/VisorReport?handler=GenerateReport' , {
-        method: 'POST',
-        headers: {
-        'Content-Type': 'application/json',
-        "RequestVerificationToken": document.querySelector('input[name="__RequestVerificationToken"]').value
+           method: 'POST',
+           headers: {
+           'Content-Type': 'application/json',
+             "RequestVerificationToken": document.querySelector('input[name="__RequestVerificationToken"]').value
         },
         body: JSON.stringify(data)
         })
         .then(res => res.json())
         .then(data => {
-
+        Swal.close();
         // alert("entro");
         if (!data.success) {
         alert("Error al generar reporte");

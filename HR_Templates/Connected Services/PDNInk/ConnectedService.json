@@ -1,0 +1,18 @@
+{
+  "ExtendedData": {
+    "inputs": [
+      "http://persefone-test:9028/PDNInk.svc"
+    ],
+    "collectionTypes": [
+      "System.Collections.Generic.Dictionary`2",
+      "System.Collections.Generic.List`1"
+    ],
+    "enableDataBinding": true,
+    "messageContract": true,
+    "namespaceMappings": [
+      "*, PDNInk"
+    ],
+    "targetFramework": "net8.0",
+    "typeReuseMode": "None"
+  }
+}

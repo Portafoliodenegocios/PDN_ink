@@ -26,6 +26,7 @@
     <PackageReference Include="iTextSharp" Version="5.5.13.5" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="Proxys\" />
     <Folder Include="wwwroot\pdfjs\build\" />
     <Folder Include="wwwroot\pdfjs\web\" />
     <Folder Include="wwwroot\signatures\" />
@@ -34,6 +35,8 @@
     <TypeScriptCompileBlocked>true</TypeScriptCompileBlocked>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="MessagePack" Version="3.1.4" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.26" />
     <PackageReference Include="System.ServiceModel.Duplex" Version="6.0.0" />
     <PackageReference Include="System.ServiceModel.Http" Version="8.*" />
     <PackageReference Include="System.ServiceModel.NetTcp" Version="8.*" />

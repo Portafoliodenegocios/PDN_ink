@@ -1,10 +1,15 @@
 ﻿@page
 @model HR_Templates.Pages.FormatosModel
 @{
+    var _token = string.Empty;
     Layout = null;
+    if (@ViewData["_Token"] != null)
+    {
+        const string V = "_Token";
+        _token = @ViewData[V]?.ToString();
+    }
 }
 <link href="~/hr/css/styleFormatos.css" rel="stylesheet" />
-
 <div class="container">
     <div class="card">
 
@@ -12,8 +17,7 @@
             📄 Selección de Formatos
         </div>
 
-        <form method="post">
-                     
+        <form method="post">                     
 
             <div class="form-layout">
 
@@ -24,8 +28,8 @@
                     <div class="list" id="formatList">
                         @foreach (var item in Model.Formatos)
                         {
-                          <div class="list-item"  data-value="@item" >
-                               @item
+                            <div class="list-item" data-value="@item.Is_SSRS" data-id="@item.Id">
+                                @item.Name
                           </div>
                         }
                     </div>
@@ -35,10 +39,11 @@
                     <i class="fa-solid fa-paper-plane"></i>
                       Enviar 🚀
                     </button>
-            </div>
-                
+            </div>                
 
-            <input type="hidden" id="selectedValue" name="FormatoSeleccionado" />
+            <input type="hidden" id="selectedValue" name="Document_Option_Id" />
+            <input type="hidden" id="ExcelorSSRS" name="Is_SSRS" />
+            <input type="hidden" id="token" name="_token"  value="@_token" />
 
             @if (!ViewData.ModelState.IsValid)
             {
@@ -55,17 +60,20 @@
     </div>
 </div>
 
- <script id="m1k3c9">
+ <script >
+    
     const items = document.querySelectorAll(".list-item");
     const hidden = document.getElementById("selectedValue");
     const search = document.getElementById("search");
+    const hd_is = document.getElementById("ExcelorSSRS");
 
     items.forEach(item => {
         item.addEventListener("click", () => {
-        
+        debugger;
             items.forEach(i => i.classList.remove("active"));      
             item.classList.add("active");        
-            hidden.value = item.dataset.value;
+            hidden.value = item.dataset.id;
+            hd_is.value = item.dataset.value;
 
         });
     });
