@@ -191,7 +191,7 @@ namespace HR_Templates.Pages
                     { "rpSegundaFecha", model.rpSegundaFecham.ToString("yyyy-MM-ddTHH:mm:ss") },
                     { "rpNQuincenas", model.rpNQuincenas },
                     { "rpNMeses", model.rpNMeses },
-                    { "rpObservaciones", model.rpObservaciones }
+                    { "rpObservaciones", model.rpObservaciones  }
                 };
 
             return await GenerateReportAsync(model.ReportName, parameters);

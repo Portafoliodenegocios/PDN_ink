@@ -274,6 +274,9 @@ namespace Pdnink_Coremvc.Controllers
                 }
 
                 var namefull = tokenClaims.Claims.FirstOrDefault(x => x.Type == "FullName")?.Value;
+                var position = tokenClaims.Claims.FirstOrDefault(x => x.Type == "Position")?.Value;
+                var employeeid = tokenClaims.Claims.FirstOrDefault(x => x.Type == "EmployeeId")?.Value;
+                var area = tokenClaims.Claims.FirstOrDefault(x => x.Type == "Area")?.Value;
 
 
                 var claims = new List<Claim>
@@ -281,7 +284,10 @@ namespace Pdnink_Coremvc.Controllers
                         new Claim(JwtRegisteredClaimNames.Sub, userGuidValue),
                         new Claim("username", userLogin),
                         new Claim("UserGuid", userGuidValue),
-                        new Claim("FullName", namefull)
+                        new Claim("FullName", namefull),
+                         new Claim("Position", position),
+                        new Claim("EmployeeId", employeeid),
+                        new Claim("Area", area)
                     };
 
                

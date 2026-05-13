@@ -573,6 +573,9 @@
         if (!get("rpNMeses")?.value.trim())
         mensajes.push("• Número de meses requerido");
 
+        if (!get("rpObservaciones")?.value.trim())
+        mensajes.push("• Observaciones requerido");
+
         // --- VALIDACIÓN FINAL ---
         if (mensajes.length > 0) {
         Swal.fire({
