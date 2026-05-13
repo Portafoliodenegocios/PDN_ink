@@ -1,0 +1,19 @@
+{
+  "ExtendedData": {
+    "inputs": [
+      "http://persefone-test:9028/PDNInk.svc"
+    ],
+    "collectionTypes": [
+      "System.Array",
+      "System.Collections.Generic.Dictionary`2"
+    ],
+    "namespaceMappings": [
+      "*, PDNInk"
+    ],
+    "references": [
+      "C:\\github\\PDN_ink\\PDN_ink\\PDN_ink\\bin\\Debug\\net10.0\\HR_Templates.dll"
+    ],
+    "targetFramework": "net10.0",
+    "typeReuseMode": "All"
+  }
+}

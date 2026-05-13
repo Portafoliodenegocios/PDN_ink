@@ -1,0 +1,239 @@
+﻿@using HR_Templates.Proxys
+
+@model IEnumerable<PDNInk.User_Folder>
+
+@using Microsoft.Extensions.Configuration
+@inject IConfiguration Configuration
+@{
+    ViewData["Title"] = "Home Page";
+    Layout = "_Layout";
+    string token = ViewData["TokenRH"] as string;
+}
+<div class="table-header-actions">
+    <h2 class="table-title">Dashboard General</h2>
+</div>
+
+<div class="dashboard-grid">
+    <!-- Fila 1: KPIs -->
+    <div class="kpi-container">
+        <!-- Card 1: Pendientes de Firma -->
+        <div class="kpi-card">
+            <div class="kpi-icon yellow">
+                <i class="fa-regular fa-clock"></i>
+            </div>
+            <div class="kpi-info">
+                <h3>Pendientes de Firma</h3>
+                <p>12</p>
+            </div>
+        </div>
+
+        <!-- Card 2: Firmados -->
+        <div class="kpi-card">
+            <div class="kpi-icon yellow">
+                <i class="fa-solid fa-pen-nib"></i>
+            </div>
+            <div class="kpi-info">
+                <h3>Firmados</h3>
+                <p>45</p>
+            </div>
+        </div>
+
+        <!-- Card 3: Enviados -->
+        <div class="kpi-card">
+            <div class="kpi-icon yellow">
+                <i class="fa-solid fa-paper-plane"></i>
+            </div>
+            <div class="kpi-info">
+                <h3>Enviados</h3>
+                <p>28</p>
+            </div>
+        </div>
+
+        <!-- Card 4: Pendiente Vo.Bo -->
+        <div class="kpi-card">
+            <div class="kpi-icon yellow">
+                <i class="fa-regular fa-clock"></i>
+            </div>
+            <div class="kpi-info">
+                <h3>Pendiente Vo.Bo</h3>
+                <p>5</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Columna Izquierda (Principal) -->
+    <div class="main-column">
+
+        <!-- Card: Últimos Documentos -->
+        <div class="recent-docs-card dashboard-card">
+            <div class="card-header">
+                <h3>Últimos Documentos</h3>
+            </div>
+            <!-- Encabezados de la lista -->
+            <div class="docs-list-header" style="display: flex; padding: 0 0 10px 0; border-bottom: 1px solid #f0f0f0; color: #718ebf; font-size: 12px; font-weight: 600;">
+                <div style="width: 40%;">No. de Documento</div>
+                <div style="width: 60%;">Actividad</div>
+            </div>
+            <ul class="docs-list">
+                <li class="docs-list-item">
+                    <div class="doc-number">
+                        <i class="fa-solid fa-rotate-right reload-icon"></i>
+                        <span>DOC-001</span>
+                    </div>
+                    <div class="doc-activity">Firma completada por Gerente</div>
+                </li>
+                <li class="docs-list-item">
+                    <div class="doc-number">
+                        <i class="fa-solid fa-rotate-right reload-icon"></i>
+                        <span>DOC-002</span>
+                    </div>
+                    <div class="doc-activity">Enviado a revisión</div>
+                </li>
+                <li class="docs-list-item">
+                    <div class="doc-number">
+                        <i class="fa-solid fa-rotate-right reload-icon"></i>
+                        <span>DOC-003</span>
+                    </div>
+                    <div class="doc-activity">Pendiente de firma cliente</div>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Card: Gráfica de Barras (Flujo de Actividad) -->
+        <div class="chart-card dashboard-card">
+            <div class="card-header">
+                <h3>Flujo de Actividad</h3>
+            </div>
+            <div class="chart-wrapper" style="display: flex; height: 100%;">
+                <!-- Eje Y -->
+                <div class="chart-y-axis" style="display: flex; flex-direction: column; justify-content: space-between; padding-right: 10px; color: #b1b1b1; font-size: 10px; height: 80%; margin-top: auto; margin-bottom: 25px;">
+                    <span>50</span>
+                    <span>40</span>
+                    <span>30</span>
+                    <span>20</span>
+                    <span>10</span>
+                    <span>0</span>
+                </div>
+
+                <div class="bar-chart-container">
+                    <!-- Lunes -->
+                    <div class="chart-day">
+                        <div class="bars-group">
+                            <div class="bar blue" style="height: 80%;"></div> <!-- 40/50 = 80% -->
+                            <div class="bar green" style="height: 100%;"></div> <!-- 50/50 = 100% -->
+                        </div>
+                        <span class="day-label">Lun</span>
+                    </div>
+                    <!-- Martes -->
+                    <div class="chart-day">
+                        <div class="bars-group">
+                            <div class="bar blue" style="height: 60%;"></div>
+                            <div class="bar green" style="height: 40%;"></div>
+                        </div>
+                        <span class="day-label">Mar</span>
+                    </div>
+                    <!-- Miércoles -->
+                    <div class="chart-day">
+                        <div class="bars-group">
+                            <div class="bar blue" style="height: 90%;"></div>
+                            <div class="bar green" style="height: 20%;"></div>
+                        </div>
+                        <span class="day-label">Mié</span>
+                    </div>
+                    <!-- Jueves -->
+                    <div class="chart-day">
+                        <div class="bars-group">
+                            <div class="bar blue" style="height: 30%;"></div>
+                            <div class="bar green" style="height: 50%;"></div>
+                        </div>
+                        <span class="day-label">Jue</span>
+                    </div>
+                    <!-- Viernes -->
+                    <div class="chart-day">
+                        <div class="bars-group">
+                            <div class="bar blue" style="height: 70%;"></div>
+                            <div class="bar green" style="height: 80%;"></div>
+                        </div>
+                        <span class="day-label">Vie</span>
+                    </div>
+                    <!-- Sábado -->
+                    <div class="chart-day">
+                        <div class="bars-group">
+                            <div class="bar blue" style="height: 20%;"></div>
+                            <div class="bar green" style="height: 10%;"></div>
+                        </div>
+                        <span class="day-label">Sáb</span>
+                    </div>
+                    <!-- Domingo -->
+                    <div class="chart-day">
+                        <div class="bars-group">
+                            <div class="bar blue" style="height: 10%;"></div>
+                            <div class="bar green" style="height: 5%;"></div>
+                        </div>
+                        <span class="day-label">Dom</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Columna Derecha (Lateral) -->
+    <div class="side-column">
+
+        <!-- Card: Calendario -->
+        <div class="calendar-card dashboard-card">
+            <div class="cal-tabs">
+                <button class="cal-tab-btn active" onclick="DashboardApp.Calendar.switchTab(this, 'calendario')">Calendario</button>
+                <button class="cal-tab-btn" onclick="DashboardApp.Calendar.switchTab(this, 'vencimientos')">Vencimientos</button>
+            </div>
+
+            <div id="cal-tab-calendario" class="cal-tab-content active">
+                <div class="calendar-header">
+                    <button class="calendar-nav-btn" onclick="DashboardApp.Calendar.changeMonth(-1)"><i class="fa-solid fa-chevron-left"></i></button>
+                    <div class="calendar-controls">
+                        <div class="custom-select-wrapper">
+                            <select id="calMonth" onchange="DashboardApp.Calendar.render()"></select>
+                            <i class="fa-solid fa-chevron-down select-arrow"></i>
+                        </div>
+                        <div class="custom-select-wrapper">
+                            <select id="calYear" onchange="DashboardApp.Calendar.render()"></select>
+                            <i class="fa-solid fa-chevron-down select-arrow"></i>
+                        </div>
+                    </div>
+                    <button class="calendar-nav-btn" onclick="DashboardApp.Calendar.changeMonth(1)"><i class="fa-solid fa-chevron-right"></i></button>
+                </div>
+                <div class="calendar-grid" id="calendarGrid">
+                    <!-- Se llena con JS -->
+                </div>
+            </div>
+
+            <div id="cal-tab-vencimientos" class="cal-tab-content">
+                <p style="text-align: center; color: #b1b1b1; padding: 20px;">No hay vencimientos próximos.</p>
+            </div>
+        </div>
+
+        <!-- Card: Gráfica Circular -->
+        <div class="pie-chart-card dashboard-card">
+            <div class="card-header" style="width: 100%; border: none;">
+                <h3>Estadísticas</h3>
+            </div>
+            <div class="pie-chart"></div>
+            <div class="chart-legend">
+                <div class="legend-item">
+                    <span><span class="legend-color" style="background: #3498db;"></span> Mes Anterior</span>
+                    <span>33%</span>
+                </div>
+                <div class="legend-item">
+                    <span><span class="legend-color" style="background: #2ecc71;"></span> Este Mes</span>
+                    <span>33%</span>
+                </div>
+                <div class="legend-item">
+                    <span><span class="legend-color" style="background: #9b59b6;"></span> Hoy</span>
+                    <span>34%</span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>

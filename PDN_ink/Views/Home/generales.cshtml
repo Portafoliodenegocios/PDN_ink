@@ -1,0 +1,295 @@
+﻿@using HR_Templates.Proxys
+
+@model IEnumerable<Pdnink.Models.GeneralesModelTable>
+
+@using Microsoft.Extensions.Configuration
+@inject IConfiguration Configuration
+@{
+    ViewData["Title"] = "Home Page";
+    Layout = "_Layout";
+    string token = ViewData["TokenRH"] as string;
+}
+<div class="table-header-actions">
+    <h2 class="table-title">Documentos Generales</h2>
+    <button class="btn-primary"><i class="fa-solid fa-plus"></i> Nuevo</button>
+</div>
+
+<!-- KPIs Detallados -->
+<div class="dashboard-grid" style="margin-bottom: 30px;">
+    <div class="kpi-container">
+        <!-- Card 1: Enviados a firma -->
+        <div class="kpi-card-detailed">
+            <div class="kpi-card-title">Enviados a firma</div>
+            <div class="kpi-stats-row">
+                <div class="kpi-stat">
+                    <span class="kpi-stat-value">15</span>
+                    <span class="kpi-stat-label">Firmados</span>
+                </div>
+                <div class="kpi-stat">
+                    <span class="kpi-stat-value">8</span>
+                    <span class="kpi-stat-label">En firma</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 2: Borrador -->
+        <div class="kpi-card-detailed">
+            <div class="kpi-card-title">Borrador</div>
+            <div class="kpi-stats-row">
+                <div class="kpi-stat">
+                    <span class="kpi-stat-value">3</span>
+                    <span class="kpi-stat-label">Enviados (60%)</span>
+                </div>
+                <div class="kpi-stat">
+                    <span class="kpi-stat-value">5</span>
+                    <span class="kpi-stat-label">Borradores</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 3: Pendientes de Vo.Bo. -->
+        <div class="kpi-card-detailed">
+            <div class="kpi-card-title">Pendientes de Vo.Bo.</div>
+            <div class="kpi-stats-row">
+                <div class="kpi-stat">
+                    <span class="kpi-stat-value">12</span>
+                    <span class="kpi-stat-label">Enviados</span>
+                </div>
+                <div class="kpi-stat">
+                    <span class="kpi-stat-value">2</span>
+                    <span class="kpi-stat-label">Borradores</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 4: Pendiente de validar firma -->
+        <div class="kpi-card-detailed">
+            <div class="kpi-card-title">Pendiente de validar firma</div>
+            <div class="kpi-stats-row">
+                <div class="kpi-stat">
+                    <span class="kpi-stat-value">7</span>
+                    <span class="kpi-stat-label">Enviados</span>
+                </div>
+                <div class="kpi-stat">
+                    <span class="kpi-stat-value">1</span>
+                    <span class="kpi-stat-label">Borradores</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tabla Detallada -->
+<div class="table-container">
+    <table id="generalesTable">
+        <thead>
+            <tr>
+                <th>Doc</th>
+                <th class="filterable-header" data-col="1">
+                    <div class="th-content"><span>Nombre del documento</span><i class="fa-solid fa-filter filter-icon"></i></div>
+                    <div class="filter-dropdown"></div>
+                </th>
+                <th class="filterable-header" data-col="2">
+                    <div class="th-content"><span>ID del documento</span><i class="fa-solid fa-filter filter-icon"></i></div>
+                    <div class="filter-dropdown"></div>
+                </th>
+                <th class="filterable-header" data-col="3">
+                    <div class="th-content"><span>Creador</span><i class="fa-solid fa-filter filter-icon"></i></div>
+                    <div class="filter-dropdown"></div>
+                </th>
+                <th class="filterable-header" data-col="4">
+                    <div class="th-content"><span>Propietario</span><i class="fa-solid fa-filter filter-icon"></i></div>
+                    <div class="filter-dropdown"></div>
+                </th>
+                <th>Participantes</th>
+                <th>Creado</th>
+                <th class="filterable-header" data-col="7">
+                    <div class="th-content"><span>Estatus</span><i class="fa-solid fa-filter filter-icon"></i></div>
+                    <div class="filter-dropdown"></div>
+                </th>
+                <th>Día</th>
+                <th>Firma</th>
+                <th><i class="fa-solid fa-gear" style="color: #718ebf;"></i></th>
+            </tr>
+        </thead>
+        <tbody>
+            @{
+                foreach (var mod in Model)
+                {
+                    <tr>
+                <td>
+                    <button class="doc-btn" onclick="DashboardApp.Modal.openSignModal('Contrato de Servicios')">
+                                <img src="/img/pdf.jpg" alt="PDF">
+                    </button>
+                </td>
+                <td><div class="cell-wrap">@mod.Document_Name</div></td>
+                <td><div class="cell-truncate">@mod.Id_Document</div></td>
+                <td>@mod.Creator</td>
+                <td>@mod.Owner</td>
+                <td>
+                    <div class="participant-list">
+                        <span class="participant-badge badge-blue">@mod.Participants</span>
+                                <span class="participant-badge badge-purple">@mod.Participants</span>
+                    </div>
+                </td>
+                <td>@mod.Create_Date</td>
+                <td>
+                    <div class="status-wrapper">
+                        <span class="status-dot status-green"></span> @mod.Status
+                    </div>
+                </td>
+                <td>-</td> <!-- Se calcula con JS -->
+                <td><i class="fa-solid fa-pen-nib" style="color: #718ebf;"></i></td>
+                <td>
+                    <div class="action-menu-container">
+                        <button class="table-action-btn" title="Acciones">
+                            <i class="fa-solid fa-bars"></i>
+                        </button>
+                        <div class="action-dropdown">
+                            <a href="#"><i class="fa-solid fa-pen"></i> Editar</a>
+                            <a href="#"><i class="fa-solid fa-check"></i> Finalizar</a>
+                            <a href="#"><i class="fa-solid fa-box-archive"></i> Archivar</a>
+                            <a href="#"><i class="fa-solid fa-copy"></i> Duplicar</a>
+                            <div class="divider"></div>
+                            <a href="#"><i class="fa-solid fa-file-pdf"></i> Descargar PDF</a>
+                            <a href="#"><i class="fa-solid fa-eye"></i> Ver Documento</a>
+                            <div class="divider"></div>
+                            <a href="#" class="danger"><i class="fa-solid fa-trash"></i> Eliminar</a>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+                    
+                }
+            }
+           @*  <tr>
+                <td>
+                    <button class="doc-btn" onclick="DashboardApp.Modal.openSignModal('Contrato de Servicios')">
+                        <img src="img/pdf.jpg" alt="PDF">
+                    </button>
+                </td>
+                <td><div class="cell-wrap">Contrato de Servicios Profesionales</div></td>
+                <td><div class="cell-truncate">DOC-2026-001</div></td>
+                <td>Evelin Ramirez</td>
+                <td>Evelin Ramirez</td>
+                <td>
+                    <div class="participant-list">
+                        <span class="participant-badge badge-blue">Analista</span>
+                        <span class="participant-badge badge-purple">Gerente</span>
+                    </div>
+                </td>
+                <td>01/02/2026</td>
+                <td>
+                    <div class="status-wrapper">
+                        <span class="status-dot status-green"></span> Enviado
+                    </div>
+                </td>
+                <td>-</td> <!-- Se calcula con JS -->
+                <td><i class="fa-solid fa-pen-nib" style="color: #718ebf;"></i></td>
+                <td>
+                    <div class="action-menu-container">
+                        <button class="table-action-btn" title="Acciones">
+                            <i class="fa-solid fa-bars"></i>
+                        </button>
+                        <div class="action-dropdown">
+                            <a href="#"><i class="fa-solid fa-pen"></i> Editar</a>
+                            <a href="#"><i class="fa-solid fa-check"></i> Finalizar</a>
+                            <a href="#"><i class="fa-solid fa-box-archive"></i> Archivar</a>
+                            <a href="#"><i class="fa-solid fa-copy"></i> Duplicar</a>
+                            <div class="divider"></div>
+                            <a href="#"><i class="fa-solid fa-file-pdf"></i> Descargar PDF</a>
+                            <a href="#"><i class="fa-solid fa-eye"></i> Ver Documento</a>
+                            <div class="divider"></div>
+                            <a href="#" class="danger"><i class="fa-solid fa-trash"></i> Eliminar</a>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <button class="doc-btn" onclick="DashboardApp.Modal.openSignModal('Acuerdo de Confidencialidad')">
+                        <img src="img/pdf.jpg" alt="PDF">
+                    </button>
+                </td>
+                <td><div class="cell-wrap">Acuerdo de Confidencialidad (NDA)</div></td>
+                <td><div class="cell-truncate">DOC-2026-002</div></td>
+                <td>Evelin Ramirez</td>
+                <td>Lucia C.</td>
+                <td>
+                    <div class="participant-list">
+                        <span class="participant-badge badge-orange">Evelin R.</span>
+                        <span class="participant-badge badge-teal">Cesar D.</span>
+                    </div>
+                </td>
+                <td>03/02/2026</td>
+                <td>
+                    <div class="status-wrapper">
+                        <span class="status-dot status-yellow"></span> Pendiente
+                    </div>
+                </td>
+                <td>-</td> <!-- Se calcula con JS -->
+                <td><i class="fa-solid fa-pen-nib" style="color: #718ebf;"></i></td>
+                <td>
+                    <div class="action-menu-container">
+                        <button class="table-action-btn" title="Acciones">
+                            <i class="fa-solid fa-bars"></i>
+                        </button>
+                        <div class="action-dropdown">
+                            <a href="#"><i class="fa-solid fa-pen"></i> Editar</a>
+                            <a href="#"><i class="fa-solid fa-check"></i> Finalizar</a>
+                            <a href="#"><i class="fa-solid fa-box-archive"></i> Archivar</a>
+                            <a href="#"><i class="fa-solid fa-copy"></i> Duplicar</a>
+                            <div class="divider"></div>
+                            <a href="#"><i class="fa-solid fa-file-pdf"></i> Descargar PDF</a>
+                            <a href="#"><i class="fa-solid fa-eye"></i> Ver Documento</a>
+                            <div class="divider"></div>
+                            <a href="#" class="danger"><i class="fa-solid fa-trash"></i> Eliminar</a>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <button class="doc-btn" onclick="DashboardApp.Modal.openSignModal('Propuesta Comercial')">
+                        <img src="img/pdf.jpg" alt="PDF">
+                    </button>
+                </td>
+                <td><div class="cell-wrap">RFC-CONSTANCIA-COMERCIALIZADORA DE PRODUCTOS PARA LA INVESTIGACION Y LA SALUD, S.A. DE C.V.-062024-26782.pdf</div></td>
+                <td><div class="cell-truncate">DOC-2026-003</div></td>
+                <td>Juan Perez</td>
+                <td>Juan Perez</td>
+                <td>
+                    <div class="participant-list">
+                        <span class="participant-badge badge-teal">Gerente</span>
+                    </div>
+                </td>
+                <td>28/01/2026</td>
+                <td>
+                    <div class="status-wrapper">
+                        <span class="status-dot status-red"></span> Cancelado
+                    </div>
+                </td>
+                <td>-</td> <!-- Se calcula con JS -->
+                <td><i class="fa-solid fa-pen-nib" style="color: #718ebf;"></i></td>
+                <td>
+                    <div class="action-menu-container">
+                        <button class="table-action-btn" title="Acciones">
+                            <i class="fa-solid fa-bars"></i>
+                        </button>
+                        <div class="action-dropdown">
+                            <a href="#"><i class="fa-solid fa-pen"></i> Editar</a>
+                            <a href="#"><i class="fa-solid fa-check"></i> Finalizar</a>
+                            <a href="#"><i class="fa-solid fa-box-archive"></i> Archivar</a>
+                            <a href="#"><i class="fa-solid fa-copy"></i> Duplicar</a>
+                            <div class="divider"></div>
+                            <a href="#"><i class="fa-solid fa-file-pdf"></i> Descargar PDF</a>
+                            <a href="#"><i class="fa-solid fa-eye"></i> Ver Documento</a>
+                            <div class="divider"></div>
+                            <a href="#" class="danger"><i class="fa-solid fa-trash"></i> Eliminar</a>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        </tbody> *@
+    </table>
+</div>

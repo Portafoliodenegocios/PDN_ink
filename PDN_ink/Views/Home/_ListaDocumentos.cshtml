@@ -1,0 +1,26 @@
+﻿@model IEnumerable<PDNInk.vw_Document_User_Folder>
+
+@if (Model != null && Model.Any())
+{
+    foreach (var doc in Model)
+    {
+        <tr>
+            <td><i class="fa-solid fa-file-pdf" style="color: #e02424;"></i></td>
+            @* Usamos Display_Name que es el que reconoce el proxy *@
+            <td>@doc.Display_Name</td>
+          
+           
+            <td>@doc.Created_Date</td>
+            <td>@doc.Document_Id KB</td>
+            <td>
+                <button class="btn-ghost" title="Ver archivo">
+                    <i class="fa-solid fa-eye"></i>
+                </button>
+            </td>
+        </tr>
+    }
+}
+else
+{
+    <tr><td colspan="6" style="text-align:center;">No hay documentos en esta carpeta.</td></tr>
+}

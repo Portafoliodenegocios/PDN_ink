@@ -33,9 +33,9 @@ namespace Pdnink_Coremvc.Controllers
 
         public IActionResult Login()
         {
-            var token = HttpContext.Session.GetString("Token");
-            if (!string.IsNullOrEmpty(token))
-                return RedirectToAction("Index", "Home");            
+            //var token = HttpContext.Session.GetString("Token");
+            //if (!string.IsNullOrEmpty(token))
+            //    return RedirectToAction("Index", "Home");            
 
             //AppHttpContext.Current.Session.Clear();
             ViewBag.Token = AppSettings.TokenKey;

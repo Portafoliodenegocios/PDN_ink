@@ -1,0 +1,182 @@
+﻿@using HR_Templates.Proxys
+
+@model IEnumerable<PDNInk.User_Folder>
+
+@using Microsoft.Extensions.Configuration
+@inject IConfiguration Configuration
+@{
+    ViewData["Title"] = "Home Page";
+    Layout = "_Layout";
+    string token = ViewData["TokenRH"] as string;
+}
+<div class="table-header-actions">
+    <h2 class="table-title">Mis Carpetas</h2>
+    <div class="table-filters">
+        <button class="btn-primary" onclick="DashboardApp.Folders.openCreateModal()"><i class="fa-solid fa-folder-plus"></i> Nueva Carpeta</button>
+    </div>
+</div>
+
+<!-- Vista de Grid de Carpetas -->
+<div id="foldersGrid" class="dashboard-grid" style="grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));">
+    <!-- Las carpetas se generarán dinámicamente aquí -->
+</div>
+
+<!-- Vista de Contenido de Carpeta (Oculta por defecto) -->
+<div id="folderContent" style="display: none;">
+    <div style="margin-bottom: 20px; display: flex; align-items: center; gap: 5px;">
+        <button class="btn-ghost" onclick="DashboardApp.Folders.showFoldersList()"><i class="fa-solid fa-arrow-left"></i> Volver</button>
+        <h3 id="currentFolderName" style="margin: 0; color: #343c6a; padding-left: 10px; border-left: 1px solid #ddd;">Nombre Carpeta</h3>
+    </div>
+
+    <div class="table-container">
+        <table id="folderFilesTable">
+            <thead>
+                <tr>
+                    <th>Doc</th>
+                    <th>Nombre</th>
+                    <th>Tipo</th>
+                    <th>Fecha</th>
+                    <th>Tamaño</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="folderFilesBody">
+                <!-- Archivos simulados -->
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<style>
+    .folder-card {
+        background: white;
+        border-radius: 15px; /* Más redondeado */
+        padding: 25px 20px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border: 1px solid transparent; /* Borde transparente por defecto */
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05); /* Sombra suave */
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+        position: relative;
+    }
+
+        .folder-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border-color: #e6eff5;
+        }
+
+    .folder-click-area {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .folder-icon {
+        font-size: 48px; /* Icono más grande */
+        color: #f1c40f;
+        margin-bottom: 5px;
+        filter: drop-shadow(0 2px 3px rgba(0,0,0,0.1)); /* Sutil sombra al icono */
+    }
+
+    .folder-name {
+        font-weight: 600;
+        color: #343c6a;
+        font-size: 15px;
+        word-break: break-word;
+        line-height: 1.4;
+    }
+
+    .folder-info {
+        font-size: 12px;
+        color: #999;
+        font-weight: 500;
+    }
+
+    /* Botón de menú en la tarjeta */
+    .folder-menu-btn {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #b1b1b1;
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s;
+        z-index: 10;
+    }
+
+        .folder-menu-btn:hover {
+            background-color: #f0f0f0;
+            color: #343c6a;
+        }
+
+    /* Dropdown del menú de carpeta (MEJORADO) */
+    .folder-dropdown {
+        display: none;
+        position: absolute;
+        top: 40px;
+        right: 10px;
+        background: white;
+        border: 1px solid #f0f0f0;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.15); /* Sombra más pronunciada */
+        border-radius: 10px;
+        width: 180px; /* Un poco más ancho */
+        text-align: left;
+        z-index: 20;
+        overflow: hidden;
+        animation: fadeIn 0.2s ease-out;
+    }
+
+    
+
+    .folder-dropdown.show {
+        display: block;
+    }
+
+    .folder-dropdown a {
+        display: flex; /* Flex para alinear icono y texto */
+        align-items: center;
+        gap: 12px;
+        padding: 12px 15px; /* Más padding */
+        color: #555;
+        font-size: 13px;
+        font-weight: 500;
+        text-decoration: none;
+        transition: background 0.2s, color 0.2s;
+    }
+
+        .folder-dropdown a:hover {
+            background-color: #f9f9f9;
+            color: #151f6d; /* Color primario al hover */
+        }
+
+        .folder-dropdown a.danger {
+            color: #e74c3c;
+            border-top: 1px solid #f5f5f5; /* Separador sutil */
+        }
+
+            .folder-dropdown a.danger:hover {
+                background-color: #fff5f5;
+                color: #c0392b;
+            }
+
+    .folder-dropdown i {
+        font-size: 14px;
+        width: 16px;
+        text-align: center;
+        color: inherit; /* Heredar color del enlace */
+    }
+</style>

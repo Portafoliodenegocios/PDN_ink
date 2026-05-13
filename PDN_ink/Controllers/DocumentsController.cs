@@ -2,6 +2,7 @@
 using OfficeOpenXml;
 using Pdnink.Models;
 using Rotativa.AspNetCore;
+using HR_Templates.Proxys;
 using Spire.Xls;
 
 namespace Pdnink.Controllers
@@ -82,6 +83,8 @@ namespace Pdnink.Controllers
 
             return pdfStream.ToArray();
         }
+
+        
 
     }
 }

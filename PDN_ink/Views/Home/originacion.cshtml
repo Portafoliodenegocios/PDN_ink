@@ -1,4 +1,8 @@
-﻿@using Microsoft.Extensions.Configuration
+﻿@using HR_Templates.Proxys
+
+@model IEnumerable<Pdnink.Models.OriginacionModelTable>
+
+@using Microsoft.Extensions.Configuration
 @inject IConfiguration Configuration
 @{
     ViewData["Title"] = "Home Page";
@@ -66,7 +70,46 @@
             </tr>
         </thead>
         <tbody>
-            <tr>
+            @{
+                foreach (var mod in Model)
+                {
+                    <tr>
+                        <td><input type="checkbox" class="custom-checkbox"></td>
+                        <td>
+                            <button class="doc-btn" onclick="DashboardApp.Modal.openSignModal('F-NEG-COM-08')">
+                                <img src="/img/pdf.jpg" alt="PDF">
+                            </button>
+                        </td>
+                        <td>@mod.Origin_System</td>
+                        <td>@mod.solicitud_number</td>
+                        <td> @mod.credit_number</td>
+                        <td>@mod.Expedient_number</td>
+                        <td>
+                            <div class="cell-wrap">
+                               @mod.ComercialName
+                            </div>
+                        </td>
+                        <td>
+                            <div class="cell-wrap">
+                               @mod.Document
+                            </div>
+                        </td>
+                        <td>@mod.Create_Date</td>
+                        <td>@mod.Create_User</td>
+                        <td>@mod.Date</td>
+                        <td>@mod.User</td>
+                        <td>
+                            <ul class="signer-list">
+                                <li class="signer-item">
+                                    <span class="status-dot status-green"></span>@mod.Signatures
+                                </li>
+                            </ul>
+                        </td>
+                    </tr>
+                
+                } 
+            }
+            @* <tr>
                 <td><input type="checkbox" class="custom-checkbox"></td>
                 <td>
                     <button class="doc-btn" onclick="DashboardApp.Modal.openSignModal('F-NEG-COM-08')">
@@ -409,7 +452,7 @@
                         </li>
                     </ul>
                 </td>
-            </tr>
+            </tr> *@
         </tbody>
     </table>
 </div>

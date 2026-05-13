@@ -68,8 +68,11 @@
                         }
                     </li>
                     <li>
-                        <a href="login.html" title="Salir"><i class="fa-solid fa-right-from-bracket icon"></i><span class="menu-text">Salir</span></a>
-                    </li>
+                      <a href="@Url.Action("Login", "Account")" title="Salir">
+                        <i class="fa-solid fa-right-from-bracket icon"></i>
+                        <span class="menu-text">Salir</span>
+                      </a>
+
                 </ul>
                             
              </nav>
@@ -126,7 +129,7 @@
                         <div class="dropdown-menu" id="profileDropdown">
                             <a href="#">Mi Perfil</a>
                             <a href="#">Cuenta</a>
-                            <a href="#">Cerrar Sesión</a>
+                            <a href="@Url.Action("Login", "Account")" ">Cerrar Sesión</a>
                         </div>
                     </div>
                     
