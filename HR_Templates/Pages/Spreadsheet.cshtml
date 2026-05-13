@@ -46,15 +46,13 @@
  <script src="~/hr/js/signature.js"></script>
  <script src="~/hr/js/api.js"></script>
  <script src="~/hr/js/spreadsheet.js"></script>
-
-
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<link href="~/hr/lib/devextreme-dist/css/dx.light.css" rel="stylesheet" />
-<script src="~/hr/lib/devextreme-dist/js/dx.all.js"></script> 
-<link rel="stylesheet" href="~/hr/lib/bootstrap/dist/css/bootstrap.min.css" />
-<link href="~/hr/lib/devexpress-aspnetcore-spreadsheet/dist/dx-aspnetcore-spreadsheet.css" rel="stylesheet" />
-<script src="~/hr/lib/devexpress-aspnetcore-spreadsheet/dist/dx-aspnetcore-spreadsheet.js"></script> 
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+ <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+ <link href="~/hr/lib/devextreme-dist/css/dx.light.css" rel="stylesheet" />
+ <script src="~/hr/lib/devextreme-dist/js/dx.all.js"></script> 
+ <link rel="stylesheet" href="~/hr/lib/bootstrap/dist/css/bootstrap.min.css" />
+ <link href="~/hr/lib/devexpress-aspnetcore-spreadsheet/dist/dx-aspnetcore-spreadsheet.css" rel="stylesheet" />
+ <script src="~/hr/lib/devexpress-aspnetcore-spreadsheet/dist/dx-aspnetcore-spreadsheet.js"></script> 
+ <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <form id="formExport" method="post">
     <input name="SpreadsheetWorkSessionId" type="hidden" value="" />
@@ -174,10 +172,6 @@ Html.DevExpress()
     .Open(documentPath)
 )
  
-         
-
-
-
 <!-- MODAL DE FIRMA -->
 <div class="modal fade" id="signatureModal" tabindex="-1">
     @*  <div class="modal-dialog modal-lg"> *@

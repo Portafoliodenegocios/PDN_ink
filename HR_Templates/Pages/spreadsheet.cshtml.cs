@@ -9,6 +9,13 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using HR_Templates.Models;
 
+using System.ServiceModel;
+using System.ServiceModel.Channels;
+using System.ServiceModel.Description;
+using System.ServiceModel.Dispatcher;
+using RS = ReportingServices;
+
+
 namespace HR_Templates.Pages
 {
     [IgnoreAntiforgeryToken]

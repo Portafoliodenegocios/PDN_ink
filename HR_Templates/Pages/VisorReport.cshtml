@@ -5,6 +5,10 @@
 @{
     var Namerpt = string.Empty;
     var Fullname = string.Empty;
+    var Position = string.Empty;
+    var EmployeeId = string.Empty;
+    var Area = string.Empty;
+    var Tkn_ = string.Empty;
     var context_ = HttpContext;
     Layout = null;      
 
@@ -13,12 +17,12 @@
         const string V = "NameReport";
         Namerpt = @ViewData[V]?.ToString();
         Fullname = @ViewData["FullName"]?.ToString();
+        Position = @ViewData["Position"]?.ToString();
+        EmployeeId = @ViewData["EmployeeId"]?.ToString();
+        Area = @ViewData["Area"]?.ToString();
+        Tkn_ = @ViewData["Token_"]?.ToString();
     }
 }
-
-<script src="~/hr/js/signature.js"></script>
-<script src="~/hr/js/api.js"></script>
-
 
 <!DOCTYPE html>
 <html lang="es">
@@ -26,92 +30,17 @@
     <meta charset="utf-8" />
     <title>Visor de Reporte</title>
     <link href="~/hr/css/Sign.css" rel="stylesheet" type="text/css" runat="server" />
-    <style>
-
-            body {
-                margin: 0;
-                font-family: "Segoe UI", Arial, sans-serif;
-                background: #f4f6f9;
-                display: flex;
-                flex-direction: column;
-                height: 100vh;
-            }
-       
-            .viewer-header {
-                background: #ffffff;
-                border-bottom: 1px solid #e5e5e5;
-                padding: 10px 20px;
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            }
-
-            .viewer-title {
-                font-size: 16px;
-                font-weight: 600;
-                color: #333;
-            }
-
-            .viewer-actions {
-                display: flex;
-                gap: 10px;
-            }
-
-            .btn {
-                border: none;
-                padding: 8px 14px;
-                font-size: 14px;
-                border-radius: 5px;
-                cursor: pointer;
-                transition: all .2s;
-            }
-
-            .btn-primary {
-                background: #2f7df6;
-                color: white;
-            }
-
-                .btn-primary:hover {
-                    background: #1f66d1;
-                }
-
-            .btn-secondary {
-                background: #FF0000;
-                color: white;
-            }
-
-                .btn-secondary:hover {
-                    background: #FF0000;
-                }
-
-            /* VISOR */
-            .viewer-container {
-                flex: 1;
-                padding: 15px;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-            }
-
-            .viewer-frame {
-                width: 100%;
-                height: 100%;
-                border: none;
-                background: white;
-                box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-                border-radius: 6px;
-            }
-
-    </style>
+    <link href="~/hr/css/VisorReport.css" rel="stylesheet" type="text/css" runat="server" />
+    <script src="~/hr/js/signature.js"></script>
+    <script src="~/hr/js/api.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
 </head>
-
 <body>
     @* <input type="hidden" asp-for="rptDocumentName" value="@ViewData["rptDocumentName"].ToString()" /> *@
     @*    <input type="hidden" asp-for="RptUserName" />*@
-    <!-- HEADER -->
+      <!-- HEADER -->
     <div class="viewer-header">
 
         <div class="viewer-title">
@@ -121,20 +50,13 @@
         <div class="viewer-actions">
             <button id="btnFirmar" onclick="OpenModalSign(); return false;" class="btn btn-primary">
                 ✍ Firmar Documento
-            </button>
-
-          @*   <button class="btn btn-secondary" onclick="window.close()">
-                Cerrar
-            </button> *@
+            </button>        
         </div>
 
     </div>
-
     <!-- VISOR PDF -->
     <iframe id="pdfViewer" class="viewer-frame">
     </iframe>
-
-
 
     <!-- MODAL FIRMA -->
     <div id="modalSign" class="modal-overlay">
@@ -159,56 +81,1292 @@
 
     <script>
 
+
+        var Fullname = '@Fullname';
+        var Reportname ='@Namerpt';
+        var Position ='@Position';
+        var EmployeeId ='@EmployeeId';
+        var Area ='@Area';
+        var T_o_k_e_n ='@Tkn_';
         const NameFile_ = @Html.Raw(Json.Serialize(Namerpt));
         const FullName_ = @Html.Raw(Json.Serialize(Fullname));
-        debugger;
-        document.addEventListener("DOMContentLoaded", function () {
+        
+        document.addEventListener("DOMContentLoaded", function () 
+        {
+
+    
+        const normalizeFormFields = (formId) => {
+
+            const form = document.getElementById(formId);
+            if (!form) return;
+
+            form.querySelectorAll("input, textarea, select")
+                .forEach(el => {
+
+            if (!el.name && el.id) {
+
+            el.name = el.id
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "");
+            }
+            });
+        };
+        normalizeFormFields("formCertificate");
+        
+        const reportActions = 
+        {        
+            rptCertificateReturnVehicles: () =>   openModal("modalCertificate"),                                // Acta de entrega y devolución de vehículos
+            rptBonusAuthorization: () =>  openModal("modalBono"),                                               // Autorización de pago de bono
+            rptPrivacyNotice: () =>   openModal("modalPrivacyNotice"),                                          // Aviso de privacidad      
+            rptJobPositionChange: () => openModal("modalPositionChange"),                                       // Cambio de puesto o área del personal
+            rptInfonavitNoDebtLetter: () => openModal("modalNoDebtInfonavit"),                                  // Carta no adeudo infonavit
+            rptTerminationletter: () => openModal("modalSettlementLetter"),                                     // Carta finiquito
+            rptInstructionletter: () => openModal("modalInstructionLetter"),                                    // Carta instrucción
+            rptAcceptanceScholarship: () => submitReportservices(),                                             // Aceptación reglamento becarios
+            rtpLetterofAcceptanceoftheCodeofEthicsandConduct: () => submitReportservices(),                     // Código ética y conducta
+            rptLetterofAcceptanceofScholarshipPaymentIntoBankAccount: () =>   submitReportservices(),           // Carta aceptación beca bancaria
+            rptLetterAcceptanceRegulations: () =>  submitReportservices(),                                      // Reglamento interno trabajo
+            rptVehicleresponsibilityletterdesignating: () =>  openModal("modalVehicleResponsibilityLetter"),    // Carta responsiva vehículo
+            rtpIndividualScholarshipAgreement: () =>     openModal("modalScholarshipAgreement"),                // Convenio individual beca
+            rptIntellectualPropertyRights: () =>      openModal("modalIntellectualPropertyRights"),             // Derechos intelectuales
+            rtpDataBaseChangeRequestForm: () =>     openModal("modalDatabaseChangeRequest"),                    // Solicitud cambios BD
+            rtpRequirementsRequestForm: () =>      openModal("modalSoftwareDevelopmentRequest") ,               // Solicitud desarrollo software
+            rtpNotificationofPenaltyforDelay: () =>      openModal("modalDelayNotification"),                   // Notificacion de sancion por retardo
+            rptVehicleFaultReport: () =>      openModal("modalVehicleFailureReport"),                           // Reporte de fallas de vehículos
+            rptCollectionBoardReport: () =>      openModal("modalCollectionMeetingReport"),                     // Reporte de junta de cobranza
+            rptPersonalLoanApplication: () =>      openModal("modalTemporaryLoanRequest")                       // Solicitud de préstamo temporal
+        };               
+       
+        reportActions[NameFile_]?.();
+
+        });
+
+        function openModal(modalId)
+        {
+        const modalElement = document.getElementById(modalId);
+
+        if (!modalElement) return;
+
+        // const modal = new bootstrap.Modal(modalElement);
+
+        const modal = new bootstrap.Modal(modalElement, {
+        backdrop: 'static',
+        keyboard: false
+        });
+
+        // Modales que requieren enviar datos para la ejecución
+        const fillableModals = new Set([
+                "modalCertificate",
+                "modalBono",
+                "modalPrivacyNotice",
+                "modalNoDebtInfonavit",
+                "modalPositionChange",
+                "modalSettlementLetter",
+                "modalInstructionLetter",
+                "modalVehicleResponsibilityLetter",
+                "modalScholarshipAgreement",
+                "modalIntellectualPropertyRights",
+                "modalDatabaseChangeRequest",
+                "modalSoftwareDevelopmentRequest",
+                "modalDelayNotification",
+                "modalVehicleFailureReport",
+                "modalCollectionMeetingReport",
+                "modalTemporaryLoanRequest"
+        ]);
+
+        // Reportes automáticos
+        const autoSubmitReports = new Set([
+                "rptAcceptanceScholarship",
+                "rtpLetterofAcceptanceoftheCodeofEthicsandConduct",
+                "rptLetterofAcceptanceofScholarshipPaymentIntoBankAccount",
+                "rptLetterAcceptanceRegulations"
+        ]);
+
+        // Ejecutar acciones
+        if (fillableModals.has(modalId))
+        {
+           fillFormdata(modalId);
+           modal.show();
+           return;
+        }
+
+        if (autoSubmitReports.has(modalId))
+        {
+           submitReportservices();
+           return;
+        }
+       
+        modal.show();
+        }
+          
+        function fillFormdata(namemodal)
+        {
+
+        const fechaActual = getFechaActual();
+             
+        const commonValues = { fechaActual, Fullname, Position, EmployeeId, Area, Reportname };
+              
+        const setValue = (id, value) => {
+        const element = document.getElementById(id);
+
+        if (element && value !== undefined && value !== null)
+            element.value = value;
+        };
+
+        // Configuración por modal
+        const modalConfig = {
+
+        
+        modalCertificate: {  // Acta de entrega y devolución de vehículos
+            rpFechaDocumento: commonValues.fechaActual,   rpFechaEntrega: commonValues.fechaActual,    rpFechaDevolucion: commonValues.fechaActual,       
+            rpNombreColaborador: commonValues.Fullname,   rpPuestoColaborador: commonValues.Position,  rpNEmpleado: commonValues.EmployeeId,
+            rpArea: commonValues.Area,                    ReportName: commonValues.Reportname   },        
+        modalBono: { // Autorización de pago de bono
+            rpFecha: commonValues.fechaActual,            rpNombreEmpleado: commonValues.Fullname,     rpPuesto: commonValues.Position,   
+            rpNEmpleadob: commonValues.EmployeeId,        rpAreab: commonValues.Area,                  rpPrimerFecha: commonValues.fechaActual,           
+            rpSegundaFecham: commonValues.fechaActual,    ReportName: commonValues.Reportname   },        
+        modalPrivacyNotice: { // Aviso de privacidad
+            rp_Fecha: commonValues.fechaActual,           rpNombre_Empleado: commonValues.Fullname      },        
+        modalPositionChange: { // Cambio de puesto o área del personal
+            rpFechaCambio: commonValues.fechaActual,      rpFechaIngreso: commonValues.fechaActual,    rpNombre: commonValues.Fullname   },        
+        modalNoDebtInfonavit: { // No adeudo Infonavit
+            rpFecha_: commonValues.fechaActual,           rpNombre_: commonValues.Fullname      },        
+        modalSettlementLetter: { // Carta finiquito
+            rpFechaf: commonValues.fechaActual,           rpNombref: commonValues.Fullname,            rpNumero: commonValues.EmployeeId,
+            rpFechaFinal: commonValues.fechaActual                                              },        
+        modalInstructionLetter: { // Carta instrucción
+            rpFechai: commonValues.fechaActual,           rpFechaPagare: commonValues.fechaActual,    rpNombres: commonValues.Fullname   },       
+        modalVehicleResponsibilityLetter: {  // Carta responsiva vehículo
+            rpFechar: commonValues.fechaActual,           rpNombrer: commonValues.Fullname      },        
+        modalScholarshipAgreement: { // Convenio individual de beca
+            rpFechaIt: commonValues.fechaActual,          rpFechaTt: commonValues.fechaActual,        rpNombret: commonValues.Fullname   },        
+        modalIntellectualPropertyRights: { // Derechos intelectuales
+            rpFechaDocumentoi: commonValues.fechaActual,  rpArej: commonValues.Area,                  rpPuestoi: commonValues.Position,
+            rpNombreColaboradori: commonValues.Fullname                                         },        
+        modalDatabaseChangeRequest: {  // Solicitud cambios BD
+            rpFechadb: commonValues.fechaActual,          rpNSolicitante: commonValues.Fullname,      rpNDR: commonValues.Fullname       },        
+        modalSoftwareDevelopmentRequest: {  // Solicitud desarrollo software
+            rpFechasw: commonValues.fechaActual,          rpNombresw: commonValues.Fullname,          rpAreasw: commonValues.Area       },
+        modalDelayNotification: {  // Notificacion de sancion por retardo
+            rpFechant: commonValues.fechaActual,         rpFechaHoy:commonValues.fechaActual,        rpSancion:commonValues.fechaActual,
+            rpNombrent: commonValues.Fullname,           rpPuestont:commonValues.Position,           rpDepartamentont: commonValues.Area },
+        modalVehicleFailureReport:  {  // Reporte de fallas de vehículos
+            rpFechavh: commonValues.fechaActual,         rpNombrevh: commonValues.Fullname },
+        modalCollectionMeetingReport: { // Reporte de junta de cobranza
+           rpFechaCarteraVencida: commonValues.fechaActual },
+        modalTemporaryLoanRequest: { // Solicitud de préstamo temporal 
+           rpFechapt: commonValues.fechaActual,          rpNombrept: commonValues.Fullname,           rpNomina: commonValues.EmployeeId,  
+           rpFechaIpt: commonValues.fechaActual,         rpAreapt: commonValues.Area,                 rpFechaUpt : commonValues.fechaActual }                                                                                  
+        };
+
+        // Obtener configuración
+        const fields = modalConfig[namemodal];
+
+        if (!fields) return;
+
+        // Asignar valores
+        Object.entries(fields).forEach(([id, value]) => {
+        setValue(id, value);
+        });
+        }
+
+        function closeModal(modalId) {
+
+        const modalElement = document.getElementById(modalId);
+        const modalInstance = bootstrap.Modal.getInstance(modalElement);
+
+        if (modalInstance) {
+        modalInstance.hide();
+        }
+
+        setTimeout(() => {
+        if (window.history.length > 1) {
+        window.history.back();
+        } else {
+        window.location.href = '/Formatos';
+        }
+        }, 300);
+
+        }
+
+        function submitReportservices() {
 
         Swal.fire({
-            title: "Espere un momento por favor",
-            allowOutsideClick: false,
-        didOpen: () => 
-            {
-              Swal.showLoading();
-            }
+        title: "Generando reporte...",
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading()
         });
         debugger;
-        const data = { ReportName:NameFile_ ,Fullname:FullName_  };
+        const formData = new FormData();
+
         debugger;
-        fetch('/VisorReport?handler=GenerateReport' , {
-           method: 'POST',
-           headers: {
-           'Content-Type': 'application/json',
-             "RequestVerificationToken": document.querySelector('input[name="__RequestVerificationToken"]').value
+
+        formData.append("Reportname", Reportname);
+        formData.append("Fullname", Fullname);
+        debugger;
+
+        fetch('/VisorReport?handler=GenerateReport', {
+        method: 'POST',
+        headers: {
+          "Authorization": `Bearer ${T_o_k_e_n}`,
+          "RequestVerificationToken": document.querySelector('input[name="__RequestVerificationToken"]').value
         },
-        body: JSON.stringify(data)
+        body: formData
         })
         .then(res => res.json())
         .then(data => {
+
         Swal.close();
-        // alert("entro");
+
         if (!data.success) {
-        alert("Error al generar reporte");
+        Swal.fire("Error", "No se pudo generar reporte", "error");
         return;
         }
 
-        console.log("PDF URL:", data.url);
-
-      
         document.getElementById("pdfViewer").src =
         "/pdfjs/web/viewer.html?file=" + encodeURIComponent(data.url);
+
         })
-        .catch(err => alert('Error' + err));
+        .catch(err => {
+        Swal.close();
+        Swal.fire("Error", err.toString(), "error");
         });
+        }
+
+        async function  submitReportData(modalId, formId) {
+
+        const reportConfig = {
+
+        modalCertificate: { validate: validateFormCertificate, url: "/VisorReport?handler=GenerateVehicleReport"   },                   // Acta de entrega y devolución de vehículos
+        modalBono: { validate: validateFormBono, url: "/VisorReport?handler=GenerateBonoReport"   },                                    // Autorización de pago de bono
+        modalPrivacyNotice: { validate: validatePrivacyNoticeForm, url: "/VisorReport?handler=GeneratePrivacyNoticedReport" },          // Aviso de privacidad
+        modalPositionChange: {validate: validatePositionChangeForm, url: "/VisorReport?handler=GeneratePositionChangeReport"},          // Cambio de puesto o área del personal
+        modalNoDebtInfonavit: {validate: validateNoDebtInfonavitForm, url: "/VisorReport?handler=GenerateNoDebtInfonavitReport"},       // No adeudo Infonavit
+        modalSettlementLetter: {validate: validateSettlementLetterForm, url: "/VisorReport?handler=GenerateSettlementLetterReport"},    // Carta finiquito
+        modalInstructionLetter: {validate: validateInstructionLetterForm,url: "/VisorReport?handler=GenerateInstructionLetterReport"},  // Carta instrucción
+        modalScholarshipAgreement: {validate: validateScholarshipAgreementForm,url: "/VisorReport?handler=GenerateScholarshipAgreementReport"}, // Convenio individual de beca
+        modalIntellectualPropertyRights: { validate: validateIntellectualPropertyRightsForm, url: "/VisorReport?handler=GenerateIntellectualPropertyRightsReport"},  // Derechos intelectuales
+        modalVehicleResponsibilityLetter: { validate: validateVehicleResponsibilityLetterForm, url: "/VisorReport?handler=GenerateVehicleResponsibilityLetterReport"},// Carta responsiva vehículo
+        modalDatabaseChangeRequest: { validate: validateDatabaseChangeRequestForm, url: "/VisorReport?handler=GenerateDatabaseChangeRequestReport" }, // Solicitud cambios BD
+        modalSoftwareDevelopmentRequest: { validate: validateSoftwareDevelopmentRequestForm, url: "/VisorReport?handler=GenerateSoftwareDevelopmentRequestReport"}, // Solicitud desarrollo software
+        modalDelayNotification: { validate: validateDelayNotificationForm, url: "/VisorReport?handler=GenerateDelayNotificationReport"}, //Notificacion de sancion por retardo
+        modalVehicleFailureReport: { validate: validateVehicleFailureReportForm, url: "/VisorReport?handler=GenerateVehicleFailureReport"}, //Reporte de fallas de vehículos
+        modalCollectionMeetingReport: { validate: validateCollectionMeetingReportForm, url: "/VisorReport?handler=GenerateCollectionMeetingReport"}, // Reporte de junta de cobranza
+        modalTemporaryLoanRequest: { validate: validateTemporaryLoanRequestForm, url: "/VisorReport?handler=GenerateTemporaryLoanRequestReport"},    // Solicitud de préstamo temporal
+        };
+        
+        const config = reportConfig[modalId];
+
+        if (!config) {
+        console.error("Configuración no encontrada para:", modalId);
+        return;
+        }
+
+        if (!config.validate(formId))
+        return;
+
+        const modal = document.getElementById(modalId);
+        const form = document.getElementById(formId);
+
+        if (!form)
+        {
+        console.error("Formulario no encontrado");
+        return;
+        }
+
+        Swal.fire({
+        title: "Espere un momento por favor",
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading()
+        });
+
+        try
+        {
+        const formData = new FormData(form);
+
+        const response = await fetch(config.url, {
+        method: "POST",
+        headers: {
+        "Authorization": `Bearer ${T_o_k_e_n}`,
+        "RequestVerificationToken": document.querySelector('input[name="__RequestVerificationToken"]').value
+        },
+        
+        body: formData
+        });
+
+        const data = await response.json();
+
+        Swal.close();
+
+        if (!data.success)
+        {
+        Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "No fue posible generar el reporte"
+        });
+
+        return;
+        }
+
+        // Mostrar PDF
+        document.getElementById("pdfViewer").src =
+        "/pdfjs/web/viewer.html?file=" + encodeURIComponent(data.url);
+
+        // Cerrar modal
+        bootstrap.Modal
+        .getInstance(modal)
+        ?.hide();
+        }
+        catch (err)
+        {
+        Swal.close();
+
+        Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: err.message || err
+        });
+
+        console.error(err);
+        }
+
+       
+        }
+              
+        function getFechaActual(includeTime = false)
+        {
+        const now = new Date();
+
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+
+        // Para input type="date"
+        if (!includeTime)
+        {
+        return `${year}-${month}-${day}`;
+        }
+
+        // Para input type="datetime-local"
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+
+        return `${year}-${month}-${day}T${hours}:${minutes}`;
+        }
+   
+        function validateFormCertificate(formId) {
+
+        const get = id => document.getElementById(id);
+        let mensajes = [];
+
+               
+
+        if (!get("rpNombreColaborador")?.value.trim())
+        mensajes.push("• Nombre requerido");
+
+        if (!get("rpPuestoColaborador")?.value.trim())
+        mensajes.push("• Puesto requerido");
+
+        if (!get("rpNEmpleado")?.value.trim())
+        mensajes.push("• Número de empleado requerido");
+
+        if (!get("rpArea")?.value.trim())
+        mensajes.push("• Área requerida");
+
+       
+        const entrega = get("rpentrega")?.checked;
+        const devolucion = get("rpDevolucion")?.checked;
+
+        if (!entrega && !devolucion)
+        mensajes.push("• Selecciona Entrega o Devolución");
+
+        
+        if (!get("rpFechaEntrega")?.value)
+        mensajes.push("• Fecha de entrega requerida");
+
+        if (!get("rpFechaDevolucion")?.value)
+        mensajes.push("• Fecha de devolución requerida");
+
+        const docs = [
+        get("rpPolizaSeguro")?.checked,
+        get("rpTarjetaCirculacion")?.checked,
+        get("rpVerificacion")?.checked,
+        get("rpManual")?.checked
+        ];
+
+        if (!docs.some(d => d))
+        mensajes.push("• Selecciona al menos un documento");
+
+        if (!get("rpMarcaTipo")?.value.trim())
+        mensajes.push("• Marca requerida");
+
+        if (!get("rpPlacas")?.value.trim())
+        mensajes.push("• Placas requeridas");
+
+        if (!get("rpModelo")?.value.trim())
+        mensajes.push("• Modelo requerido");
+
+        if (!get("rpKilometrajeInicial")?.value.trim())
+        mensajes.push("• Km inicial requerido");
+
+       
+
+        if (!get("rpNombreEntrega")?.value.trim())
+        mensajes.push("• Nombre quien entrega requerido");
+
+       
+
+     
+        if (mensajes.length > 0) {
+        Swal.fire({
+        icon: "warning",
+        title: "Faltan datos",
+        html: mensajes.join("<br>"),
+        confirmButtonText: "Entendido"
+        });
+        return false;
+        }
+
+        return true;
+        }
+               
+        function validateFormBono(formId) 
+        {
+
+        const get = id => document.getElementById(id);
+        let mensajes = [];
+
+        // --- SECCIÓN: DATOS DEL EMPLEADO ---
+        if (!get("rpFecha")?.value)
+        mensajes.push("• Fecha requerida");
+
+        if (!get("rpNombreEmpleado")?.value.trim())
+        mensajes.push("• Nombre del empleado requerido");
+
+        if (!get("rpPuesto")?.value.trim())
+        mensajes.push("• Puesto requerido");
+
+        if (!get("rpNEmpleadob")?.value.trim())
+        mensajes.push("• Número de empleado requerido");
+
+        if (!get("rpAreab")?.value.trim())
+        mensajes.push("• Área requerida");
+
+        // --- SECCIÓN: INFORMACIÓN DEL BONO ---
+        if (!get("rpMotivoBono")?.value.trim())
+        mensajes.push("• Motivo del bono requerido");
+
+        const monto = get("rpMontoBono")?.value;
+        if (!monto || parseFloat(monto) <= 0)
+        mensajes.push("• Monto del bono debe ser mayor a 0");
+
+        if (!get("rpPrimerFecha")?.value)
+        mensajes.push("• Primer mes (fecha) requerido");
+
+        if (!get("rpSegundaFecham")?.value)
+        mensajes.push("• Segunda fecha requerida");
+
+        if (!get("rpNQuincenas")?.value.trim())
+        mensajes.push("• Número de quincenas requerido");
+
+        if (!get("rpNMeses")?.value.trim())
+        mensajes.push("• Número de meses requerido");
+
+        // --- VALIDACIÓN FINAL ---
+        if (mensajes.length > 0) {
+        Swal.fire({
+        icon: "warning",
+        title: "Faltan datos del Bono",
+        html: mensajes.join("<br>"),
+        confirmButtonText: "Entendido"
+        });
+        return false;
+        }
+
+        return true;
+        }
+
+        function validatePrivacyNoticeForm(formId) {
+
+        const form = document.getElementById(formId);
+        const get = id => form.querySelector("#" + id);
+        let mensajes = [];
+
+        // --- SECCIÓN: DATOS GENERALES ---
+        if (!get("rpNombre_Empleado")?.value.trim())
+        mensajes.push("• Nombre del empleado requerido");
+
+        if (!get("rpLugar")?.value.trim())
+        mensajes.push("• Lugar requerido");
+
+        if (!get("rp_Fecha")?.value)
+        mensajes.push("• Fecha requerida");
+
+        // --- VALIDACIÓN FINAL ---
+        if (mensajes.length > 0) {
+        Swal.fire({
+        icon: "warning",
+        title: "Faltan datos Aviso de Privacidad",
+        html: mensajes.join("<br>"),
+        confirmButtonText: "OK"
+        });
+        return false;
+        }
+
+        return true;
+        }
+
+        function validatePositionChangeForm(formId) {
+
+        const get = id => document.getElementById(id);
+        let mensajes = [];
+
+        // --- SECCIÓN: DATOS GENERALES ---
+        if (!get("rpFechaCambio")?.value)
+        mensajes.push("• Fecha de cambio requerida");
+
+        if (!get("rpNEmpleadop")?.value.trim())
+        mensajes.push("• Número de empleado requerido");
+
+        if (!get("rpDireccion")?.value.trim())
+        mensajes.push("• Dirección / área actual requerida");
+
+        if (!get("rpApellidoP")?.value.trim())
+        mensajes.push("• Apellido paterno requerido");
+
+        if (!get("rpApellidoM")?.value.trim())
+        mensajes.push("• Apellido materno requerido");
+
+        if (!get("rpNombre")?.value.trim())
+        mensajes.push("• Nombre requerido");
+
+        if (!get("rpNSS")?.value.trim())
+        mensajes.push("• NSS requerido");
+
+        if (!get("rpFechaIngreso")?.value)
+        mensajes.push("• Fecha de ingreso requerida");
+
+        // --- SECCIÓN: DETALLE DEL CAMBIO ---
+        const reubicacion = get("rpReubicacion")?.checked;
+
+       
+
+        if (!get("rpNivel")?.value.trim())
+        mensajes.push("• Nivel requerido");
+
+        if (!get("rpHoraInicio")?.value.trim())
+        mensajes.push("• Hora inicio requerida");
+
+        if (!get("rpHoraFinal")?.value.trim())
+        mensajes.push("• Hora final requerida");
+
+        if (!get("rpNombreNuevoPuesto")?.value.trim())
+        mensajes.push("• Nombre del nuevo puesto requerido");
+
+        if (!get("rpNombreAreaNueva")?.value.trim())
+        mensajes.push("• Nueva área requerida");
+
+        if (!get("rpObjetivoCambio")?.value.trim())
+        mensajes.push("• Objetivo del cambio requerido");
+
+        // --- SECCIÓN: RESPONSABLES ---
+        if (!get("rpJefeAnterior")?.value.trim())
+        mensajes.push("• Jefe anterior requerido");
+
+        if (!get("rpCapitalHumano")?.value.trim())
+        mensajes.push("• Capital humano requerido");
+
+        if (!get("rpNuevoJefe")?.value.trim())
+        mensajes.push("• Nuevo jefe requerido");
+
+        // --- VALIDACIÓN FINAL ---
+        if (mensajes.length > 0) {
+        Swal.fire({
+        icon: "warning",
+        title: "Faltan datos del cambio de puesto",
+        html: mensajes.join("<br>"),
+        confirmButtonText: "Entendido"
+        });
+        return false;
+        }
+
+        return true;
+        }
+       
+        function validateNoDebtInfonavitForm(formId) {
+
+        const get = id => document.getElementById(id);
+        let mensajes = [];
+
+        // --- SECCIÓN: DATOS GENERALES ---
+        if (!get("rpNombre_")?.value.trim())
+        mensajes.push("• Nombre requerido");
+
+        if (!get("rpFecha_")?.value)
+        mensajes.push("• Fecha requerida");
+
+        // --- VALIDAR RADIO BUTTON SI / NO ---
+        const creditoSeleccionado = document.querySelector('input[name="rpSioNo"]:checked');
+
+        if (!creditoSeleccionado)
+        mensajes.push("• Selecciona si cuenta con crédito Infonavit");
+
+        // --- VALIDACIÓN FINAL ---
+        if (mensajes.length > 0) {
+
+        Swal.fire({
+        icon: "warning",
+        title: "Faltan datos de la carta Infonavit",
+        html: mensajes.join("<br>"),
+        confirmButtonText: "Entendido"
+        });
+
+        return false;
+        }
+
+        return true;
+        }
+
+        function validateSettlementLetterForm(formId) {
+
+        const get = id => document.getElementById(id);
+        let mensajes = [];
+
+        // --- SECCIÓN: DATOS GENERALES ---
+        if (!get("rpNombref")?.value.trim())
+        mensajes.push("• Nombre completo requerido");
+
+        if (!get("rpNombreEmpresa")?.value.trim())
+        mensajes.push("• Nombre de la empresa requerido");
+
+        if (!get("rpFechaf")?.value)
+        mensajes.push("• Fecha requerida");
+
+        if (!get("rpNumero")?.value.trim())
+        mensajes.push("• Número requerido");
+
+        if (!get("rpTexto")?.value.trim())
+        mensajes.push("• Texto requerido");
+
+        if (!get("rpFechaFinal")?.value)
+        mensajes.push("• Fecha final requerida");
+
+        // --- VALIDACIÓN FINAL ---
+        if (mensajes.length > 0) {
+
+        Swal.fire({
+        icon: "warning",
+        title: "Faltan datos de la carta finiquito",
+        html: mensajes.join("<br>"),
+        confirmButtonText: "Entendido"
+        });
+
+        return false;
+        }
+
+        return true;
+        }
+        
+        function validateInstructionLetterForm(formId) {
+
+        const get = id => document.getElementById(id);
+        let mensajes = [];
+
+        // --- SECCIÓN: DATOS GENERALES ---
+        if (!get("rpFechai")?.value)
+        mensajes.push("• Fecha requerida");
+
+        if (!get("rpNombreLic")?.value.trim())
+        mensajes.push("• Nombre del Lic. requerido");
+
+        if (!get("rpFechaPagare")?.value)
+        mensajes.push("• Fecha del pagaré requerida");
+
+        // --- CANTIDADES ---
+        const cantidadNumero = get("rpCantidadNumero")?.value;
+
+        if (!cantidadNumero || parseFloat(cantidadNumero) <= 0)
+        mensajes.push("• Cantidad en número debe ser mayor a 0");
+
+        if (!get("rpCantidadLetra")?.value.trim())
+        mensajes.push("• Cantidad en letra requerida");
+
+        if (!get("rpCantidadD")?.value.trim())
+        mensajes.push("• Cantidad demandada requerida");
+
+        if (!get("rpCantidadDL")?.value.trim())
+        mensajes.push("• Cantidad demandada en letra requerida");
+
+        // --- PERSONA ---
+        if (!get("rpNombres")?.value.trim())
+        mensajes.push("• Nombre(s) requerido");
+
+        // --- VALIDACIÓN FINAL ---
+        if (mensajes.length > 0) {
+
+        Swal.fire({
+        icon: "warning",
+        title: "Faltan datos de la carta instrucción",
+        html: mensajes.join("<br>"),
+        confirmButtonText: "Entendido"
+        });
+
+        return false;
+        }
+
+        return true;
+        }
+
+        function validateVehicleResponsibilityLetterForm(formId) {
+
+        const get = id => document.getElementById(id);
+        let mensajes = [];
+
+        // --- SECCIÓN: DATOS GENERALES ---
+        if (!get("rpFechar")?.value)
+        mensajes.push("• Fecha requerida");
+
+        if (!get("rpPlacasr")?.value.trim())
+        mensajes.push("• Placas del vehículo requeridas");
+
+        if (!get("rpMarca")?.value.trim())
+        mensajes.push("• Marca del vehículo requerida");
+
+        if (!get("rpModelor")?.value.trim())
+        mensajes.push("• Modelo requerido");
+
+        if (!get("rpMotor")?.value.trim())
+        mensajes.push("• Número de motor requerido");
+
+        if (!get("rpSerie")?.value.trim())
+        mensajes.push("• Número de serie requerido");
+
+        if (!get("rpArear")?.value.trim())
+        mensajes.push("• Área asignada requerida");
+
+        if (!get("rpNombrer")?.value.trim())
+        mensajes.push("• Nombre requerido");
+
+        if (!get("rpLicencia")?.value.trim())
+        mensajes.push("• Número de licencia requerido");
+
+        if (!get("rpDomicilio")?.value.trim())
+        mensajes.push("• Domicilio INE requerido");
+
+        // --- VALIDACIÓN FINAL ---
+        if (mensajes.length > 0) {
+
+        Swal.fire({
+        icon: "warning",
+        title: "Faltan datos de la carta responsiva",
+        html: mensajes.join("<br>"),
+        confirmButtonText: "Entendido"
+        });
+
+        return false;
+        }
+
+        return true;
+        }
+
+        function validateScholarshipAgreementForm(formId) {
+
+        const get = id => document.getElementById(id);
+        let mensajes = [];
+
+        // --- DATOS GENERALES ---
+        if (!get("rpAreat")?.value.trim())
+        mensajes.push("• Área asignada requerida");
+
+        if (!get("rpDomiciliot")?.value.trim())
+        mensajes.push("• Domicilio INE requerido");
+
+        if (!get("rpNombret")?.value.trim())
+        mensajes.push("• Nombre requerido");
+
+        const edad = get("rpEdad")?.value;
+        if (!edad || parseInt(edad) <= 0)
+        mensajes.push("• Edad válida requerida");
+
+        if (!get("rpEstadoCivil")?.value.trim())
+        mensajes.push("• Estado civil requerido");
+
+        if (!get("rpSexo")?.value.trim())
+        mensajes.push("• Sexo requerido");
+
+        if (!get("rpRFC")?.value.trim())
+        mensajes.push("• RFC requerido");
+
+        if (!get("rpCURP")?.value.trim())
+        mensajes.push("• CURP requerido");
+
+        if (!get("rpDomicilioBt")?.value.trim())
+        mensajes.push("• Domicilio del becario requerido");
+
+        // --- DATOS ACADÉMICOS ---
+        if (!get("rpSC")?.value.trim())
+        mensajes.push("• Semestre/Cuatrimestre requerido");
+
+        if (!get("rpCarrera")?.value.trim())
+        mensajes.push("• Carrera requerida");
+
+        if (!get("rpNombreU")?.value.trim())
+        mensajes.push("• Nombre de la universidad requerido");
+
+        const matricula = get("rpMatricula")?.value;
+        if (!matricula || parseInt(matricula) <= 0)
+        mensajes.push("• Matrícula válida requerida");
+
+        if (!get("rpFechaIt")?.value)
+        mensajes.push("• Fecha de inicio requerida");
+
+        if (!get("rpFechaTt")?.value)
+        mensajes.push("• Fecha de término requerida");
+
+        const beca = get("rpBeca")?.value;
+        if (!beca || parseFloat(beca) <= 0)
+        mensajes.push("• Sueldo/Beca debe ser mayor a 0");
+
+        if (!get("rpBecaL")?.value.trim())
+        mensajes.push("• Sueldo en letra requerido");
+
+        // --- VALIDACIÓN FINAL ---
+        if (mensajes.length > 0) {
+
+        Swal.fire({
+        icon: "warning",
+        title: "Faltan datos del convenio individual de beca",
+        html: mensajes.join("<br>"),
+        confirmButtonText: "Entendido"
+        });
+
+        return false;
+        }
+
+        return true;
+        }
+
+        function validateIntellectualPropertyRightsForm(formId)
+        {
+
+        const get = id => document.getElementById(id);
+        let mensajes = [];
+
+        // --- SECCIÓN: DATOS GENERALES ---
+        if (!get("rpFechaDocumentoi")?.value)
+        mensajes.push("• Fecha del documento requerida");
+
+        if (!get("rpArej")?.value.trim())
+        mensajes.push("• Área requerida");
+
+        if (!get("rpPuestoi")?.value.trim())
+        mensajes.push("• Puesto requerido");
+
+        if (!get("rpNombreColaboradori")?.value.trim())
+        mensajes.push("• Nombre del colaborador requerido");
+
+        // --- VALIDACIÓN FINAL ---
+        if (mensajes.length > 0) {
+        Swal.fire({
+        icon: "warning",
+        title: "Faltan datos de derechos intelectuales",
+        html: mensajes.join("<br>"),
+        confirmButtonText: "Entendido"
+        });
+        return false;
+        }
+
+        return true;
+        }
+
+        function validateDatabaseChangeRequestForm(formId)
+        {
+        const get = id => document.getElementById(id);
+        let mensajes = [];
+
+        // --- SECCIÓN: DATOS GENERALES ---
+
+        if (!get("rpClave")?.value.trim())
+        mensajes.push("• Clave de requerimiento requerida");
+
+        if (!get("rpClaveS")?.value.trim())
+        mensajes.push("• Clave solicitud base de datos requerida");
+
+        if (!get("rpFase")?.value.trim())
+        mensajes.push("• Fase de detección requerida");
+
+        if (!get("rpFechadb")?.value)
+        mensajes.push("• Fecha requerida");
+
+        if (!get("rpSistema")?.value.trim())
+        mensajes.push("• Sistema requerido");
+
+        if (!get("rpBD")?.value.trim())
+        mensajes.push("• Base de datos requerida");
+
+        if (!get("rpNSolicitante")?.value.trim())
+        mensajes.push("• Nombre del solicitante requerido");
+
+        if (!get("rpElemento")?.value.trim())
+        mensajes.push("• Elemento de la configuración requerido");
+
+        if (!get("rpVersion")?.value.trim())
+        mensajes.push("• Versión requerida");
+
+        if (!get("rpDescripcion")?.value.trim())
+        mensajes.push("• Descripción del cambio requerida");
+
+        if (!get("rpJustificacion")?.value.trim())
+        mensajes.push("• Justificación del cambio requerida");
+
+       
+
+        if (!get("rpNAfectado1")?.value.trim())
+        mensajes.push("• Nombre del elemento afectado requerido");
+
+      
+
+        if (!get("rpND")?.value.trim())
+        mensajes.push("• Nombre de sistemas requerido");
+
+        if (!get("rpNDR")?.value.trim())
+        mensajes.push("• Desarrollador responsable requerido");
+
+        // --- VALIDACIÓN CHECKBOXES ---
+
+        const requerimiento =
+        get("rpRNuevo")?.checked ||
+        get("rpRCambio")?.checked ||
+        get("rpRDefecto")?.checked ||
+        get("rpRMejora")?.checked;
+
+        if (!requerimiento)
+        mensajes.push("• Debes seleccionar al menos un tipo de requerimiento");
+
+        const autorizacion =
+        get("rpAutorizacion")?.checked ||
+        get("rpNoAutorizacion")?.checked;
+
+        if (!autorizacion)
+        mensajes.push("• Debes indicar si autorizas o no autorizas");
+
+        // --- VALIDACIÓN FINAL ---
+
+        if (mensajes.length > 0) {
+
+        Swal.fire({
+        icon: "warning",
+        title: "Faltan datos de solicitud de cambio",
+        html: mensajes.join("<br>"),
+        confirmButtonText: "Entendido"
+        });
+
+        return false;
+        }
+
+        return true;
+        }
+
+        function validateSoftwareDevelopmentRequestForm(formId)
+        {
+        const get = id => document.getElementById(id);
+        let mensajes = [];
+
+        // --- SECCIÓN: DATOS GENERALES ---
+
+        if (!get("rpFechasw")?.value)
+        mensajes.push("• Fecha del requerimiento requerida");
+
+        if (!get("rpNombresw")?.value.trim())
+        mensajes.push("• Nombre del solicitante requerido");
+
+        if (!get("rpAreasw")?.value.trim())
+        mensajes.push("• Área requerida");
+
+        if (!get("rpCR")?.value.trim())
+        mensajes.push("• Clave de requerimiento requerida");
+
+        if (!get("rpNombreS")?.value.trim())
+        mensajes.push("• Nombre de sistemas requerido");
+
+        if (!get("rpModulo")?.value.trim())
+        mensajes.push("• Módulo requerido");
+       
+        if (!get("rpComentarios")?.value.trim())
+        mensajes.push("• Comentarios requeridos");
+
+        if (!get("rpDescripcionsw")?.value.trim())
+        mensajes.push("• Descripción del requerimiento requerida");
+
+        if (!get("rpJustificacionsw")?.value.trim())
+        mensajes.push("• Justificación del requerimiento requerida");
+
+        if (!get("rpComentariosw")?.value.trim())
+        mensajes.push("• Comentarios de sistemas requeridos");
+
+        if (!get("rpNombreD")?.value.trim())
+        mensajes.push("• Nombre del gerente o director solicitante requerido");
+
+        if (!get("rpNombreG")?.value.trim())
+        mensajes.push("• Nombre del director general adjunto requerido");
+
+        if (!get("rpNombreDS")?.value.trim())
+        mensajes.push("• Director de sistemas requerido");
+
+        // --- VALIDACIÓN CHECKBOXES ---
+
+        const tipoSolicitud =
+        get("rpNuevo")?.checked ||
+        get("rpCambio")?.checked ||
+        get("rpDefecto")?.checked ||
+        get("rpMejora")?.checked;
+
+        if (!tipoSolicitud)
+        mensajes.push("• Debes seleccionar al menos una opción de requerimiento");
+
+        // --- VALIDACIÓN FINAL ---
+
+        if (mensajes.length > 0)
+        {
+        Swal.fire({
+        icon: "warning",
+        title: "Faltan datos de solicitud de desarrollo",
+        html: mensajes.join("<br>"),
+        confirmButtonText: "Entendido"
+        });
+
+        return false;
+        }
+
+        return true;
+        }
+
+        function validateDelayNotificationForm(formId)
+        {
+        const get = id => document.getElementById(id);
+        let mensajes = [];
+
+        // --- VALIDACIONES ---
+
+        if (!get("rpFechant")?.value)
+        mensajes.push("• Fecha requerida");
+
+        if (!get("rpNombrent")?.value.trim())
+        mensajes.push("• Nombre requerido");
+
+        if (!get("rpPuestont")?.value.trim())
+        mensajes.push("• Puesto requerido");
+
+        if (!get("rpDepartamentont")?.value.trim())
+        mensajes.push("• Departamento requerido");
+
+        if (!get("rpFechaHoy")?.value)
+        mensajes.push("• Fecha de retardo requerida");
+
+        if (!get("rpJornada")?.value.trim())
+        mensajes.push("• Jornada laboral requerida");
+
+        if (!get("rpSancion")?.value)
+        mensajes.push("• Día de sanción requerido");
+
+        if (!get("rpNJefe")?.value.trim())
+        mensajes.push("• Nombre del jefe directo requerido");
+
+        if (!get("rpRH")?.value.trim())
+        mensajes.push("• Gerencia de capital humano requerida");
+
+        // --- VALIDACIÓN FINAL ---
+
+        if (mensajes.length > 0)
+        {
+        Swal.fire({
+        icon: "warning",
+        title: "Faltan datos de notificación de retardo",
+        html: mensajes.join("<br>"),
+        confirmButtonText: "Entendido"
+        });
+
+        return false;
+        }
+
+        return true;
+        }
+
+        function validateVehicleFailureReportForm(formId)
+        {
+        const get = id => document.getElementById(id);
+        let mensajes = [];
+
+        // --- VALIDACIONES ---
+
+        if (!get("rpFechavh")?.value)
+        mensajes.push("• Fecha requerida");
+
+        if (!get("rpNombrevh")?.value.trim())
+        mensajes.push("• Nombre requerido");
+
+        if (!get("rpTipoVehiculo")?.value.trim())
+        mensajes.push("• Tipo de vehículo requerido");
+
+        if (!get("rpColor")?.value.trim())
+        mensajes.push("• Color requerido");
+
+        if (!get("rpMarcavh")?.value.trim())
+        mensajes.push("• Marca requerida");
+
+        if (!get("rpModelovh")?.value.trim())
+        mensajes.push("• Modelo requerido");
+
+        if (!get("rpNPlacasvh")?.value.trim())
+        mensajes.push("• Número de placas requerido");
+
+        if (!get("rpAño")?.value)
+        mensajes.push("• Año requerido");
+
+        if (!get("rpKilometraje")?.value.trim())
+        mensajes.push("• Kilometraje requerido");
+
+        if (!get("rpNChasis")?.value.trim())
+        mensajes.push("• Número de chasis requerido");
+
+        if (!get("rpDescripcionvh")?.value.trim())
+        mensajes.push("• Descripción de las fallas requerida");
+
+        // --- VALIDACIÓN FINAL ---
+
+        if (mensajes.length > 0)
+        {
+        Swal.fire({
+        icon: "warning",
+        title: "Faltan datos del reporte de fallas",
+        html: mensajes.join("<br>"),
+        confirmButtonText: "Entendido"
+        });
+
+        return false;
+        }
+
+        return true;
+        }
+
+        function validateCollectionMeetingReportForm(formId)
+        {
+        const get = id => document.getElementById(id);
+        let mensajes = [];
+
+        // --- VALIDACIONES ---
+
+        if (!get("rpAsistentes")?.value.trim())
+        mensajes.push("• Asistentes requeridos");
+
+        if (!get("rpFechaCarteraVencida")?.value)
+        mensajes.push("• Fecha de la cartera vencida requerida");
+
+        if (!get("rpReporteCarteraVencida")?.value.trim())
+        mensajes.push("• Reporte de cartera vencida requerido");
+              
+
+        // --- VALIDACIÓN FINAL ---
+
+        if (mensajes.length > 0)
+        {
+        Swal.fire({
+        icon: "warning",
+        title: "Faltan datos del reporte de junta de cobranza",
+        html: mensajes.join("<br>"),
+        confirmButtonText: "Entendido"
+        });
+
+        return false;
+        }
+
+        return true;
+        }
+
+        function validateTemporaryLoanRequestForm(formId)
+        {
+        const get = id => document.getElementById(id);
+        let mensajes = [];
+
+        // --- VALIDACIONES ---
+
+        if (!get("rpFechapt")?.value)
+        mensajes.push("• Fecha de solicitud requerida");
+
+        if (!get("rpNombrept")?.value.trim())
+        mensajes.push("• Nombre del empleado requerido");
+
+        if (!get("rpNomina")?.value)
+        mensajes.push("• Número de nómina requerido");
+
+        if (!get("rpFechaIpt")?.value)
+        mensajes.push("• Fecha de ingreso requerida");
+
+        if (!get("rpAreapt")?.value.trim())
+        mensajes.push("• Área requerida");
+
+        if (!get("rpMotivopt")?.value.trim())
+        mensajes.push("• Motivo de solicitud requerido");
+
+        if (!get("rpCantidadNpt")?.value)
+        mensajes.push("• Cantidad en número requerida");
+
+        if (!get("rpCantidadLpt")?.value.trim())
+        mensajes.push("• Cantidad en letra requerida");
+
+        if (!get("rpPrimerPago")?.value)
+        mensajes.push("• Primer pago requerido");
+
+        if (!get("rpFechaUpt")?.value)
+        mensajes.push("• Fecha del último pago requerida");
+
+        if (!get("rpNoPagos")?.value)
+        mensajes.push("• Número de pagos requerido");
+
+        if (!get("rpJefe")?.value.trim())
+        mensajes.push("• Jefe inmediato requerido");
+
+        if (!get("rpCapital")?.value.trim())
+        mensajes.push("• Capital humano requerido");
+
+        if (!get("rpDescuento")?.value)
+        mensajes.push("• Descuento requerido");
+
+        if (!get("rpModo")?.value)
+        mensajes.push("• Modo de descuento  requerido");
+
+        if (!get("rpFormaDPago")?.value)
+        mensajes.push("• Forma de pago  requerido");
+        
+
+        // --- VALIDACIÓN FINAL ---
+
+        if (mensajes.length > 0)
+        {
+        Swal.fire({
+            icon: "warning",
+            title: "Faltan datos de la solicitud de préstamo temporal",
+            html: mensajes.join("<br>"),
+            confirmButtonText: "Entendido"
+        });
+
+        return false;
+        }
+
+        return true;
+        }
+
+        // ************************  Firma   *****************************
 
         function OpenModalSign()
         {
-        document.getElementById("modalSign").style.display = "flex";
+          document.getElementById("modalSign").style.display = "flex";
         }
 
         function CloseModalSign()
         {
-        document.getElementById("modalSign").style.display = "none";
+          document.getElementById("modalSign").style.display = "none";
         }
 
         const canvas = document.getElementById('Lienzo');
@@ -219,15 +1377,15 @@
         ctx.lineCap = "round";
 
         canvas.addEventListener('mousedown', e => {
-        drawing = true;
-        ctx.beginPath();
-        ctx.moveTo(e.offsetX, e.offsetY);
+            drawing = true;
+            ctx.beginPath();
+            ctx.moveTo(e.offsetX, e.offsetY);
         });
 
         canvas.addEventListener('mousemove', e => {
-        if (!drawing) return;
-        ctx.lineTo(e.offsetX, e.offsetY);
-        ctx.stroke();
+            if (!drawing) return;
+            ctx.lineTo(e.offsetX, e.offsetY);
+            ctx.stroke();
         });
 
         canvas.addEventListener('mouseup', () => drawing = false);
@@ -242,7 +1400,7 @@
 
         const canvas = document.getElementById("Lienzo");
         const imageData = canvas.toDataURL("image/png");
-        const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+        const token = T_o_k_e_n; /*  document.querySelector('input[name="__RequestVerificationToken"]').value; */
 
         fetch("/VisorReport?handler=SaveSignature", {
         method: "POST",
@@ -280,10 +1438,2619 @@
         });
         }
 
-      
+              
 
     </script>
 
+    <!-- Modal -->
+    <style>
+        .section {
+        margin-bottom: 12px;
+        }
+
+        .section h6 {
+        font-size: 13px;
+        font-weight: 600;
+        margin-bottom: 6px;
+        border-left: 3px solid #0d6efd;
+        padding-left: 6px;
+        }
+
+        .form-label {
+        font-size: 12px;
+        margin-bottom: 2px;
+        }
+
+        .form-control {
+        padding: 4px 6px;
+        font-size: 13px;
+        }
+
+        textarea.form-control {
+        height: 60px;
+        resize: none;
+        }
+
+        .check-inline label {
+        margin-right: 10px;
+        font-size: 13px;
+        }
+    </style>
+
+    <div class="modal fade" id="modalCertificate" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+
+                <!-- HEADER -->
+                <div class="modal-header py-2">
+                    <h6 class="modal-title fw-bold">
+                        Certificado de Entrega / Devolución de Vehículo
+                    </h6>
+                    <button type="button" class="btn-close" onclick="closeModal('modalCertificate')"></button>
+                </div>
+
+                <!-- BODY -->
+                <div class="modal-body py-2">
+
+                    <form id="formCertificate">
+
+                        <!-- DATOS -->
+                        <div class="section">
+                            <h6>Datos del Colaborador</h6>
+
+                            <div class="row g-2">
+
+                                <div class="col-md-3">
+                                    <label class="form-label">Fecha</label>
+                                    <input type="date" class="form-control" name="rpFechaDocumento" id="rpFechaDocumento">
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="form-label">Nombre</label>
+                                    <input type="text" class="form-control" id="rpNombreColaborador" name="rpNombreColaborador">
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="form-label">Puesto</label>
+                                    <input type="text" class="form-control" id="rpPuestoColaborador" name="rpPuestoColaborador">
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="form-label">Empleado</label>
+                                    <input type="number" class="form-control" id="rpNEmpleado" name="rpNEmpleado">
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="form-label">Área</label>
+                                    <input type="text" class="form-control" id="rpArea" name="rpArea">
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="form-label">Tipo</label>
+                                    <div class="check-inline">
+                                        <label><input type="checkbox" id="rpentrega" name="rpentrega"> Entrega</label>
+                                        <label><input type="checkbox" id="rpDevolucion" name="rpDevolucion"> Dev</label>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="form-label">F. Entrega</label>
+                                    <input type="date" class="form-control" id="rpFechaEntrega" name="rpFechaEntrega">
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="form-label">F. Devolución</label>
+                                    <input type="date" class="form-control" id="rpFechaDevolucion" name="rpFechaDevolucion">
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <!-- DOCUMENTOS -->
+                        <div class="section">
+                            <h6>Documentación</h6>
+                            <div class="check-inline">
+                                <label><input type="checkbox" id="rpPolizaSeguro" name="rpPolizaSeguro"> Póliza</label>
+                                <label><input type="checkbox" id="rpTarjetaCirculacion" name="rpTarjetaCirculacion"> Tarjeta</label>
+                                <label><input type="checkbox" id="rpVerificacion" name="rpVerificacion"> Verif.</label>
+                                <label><input type="checkbox" id="rpManual" name="rpManual"> Manual</label>
+                            </div>
+                        </div>
+
+                        <!-- VEHICULO -->
+                        <div class="section">
+                            <h6>Vehículo</h6>
+
+                            <div class="row g-2">
+
+                                <div class="col-md-3">
+                                    <label class="form-label">Marca</label>
+                                    <input class="form-control" id="rpMarcaTipo" name="rpMarcaTipo">
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="form-label">Placas</label>
+                                    <input class="form-control" id="rpPlacas" name="rpPlacas">
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="form-label">Modelo</label>
+                                    <input type="number" class="form-control" id="rpModelo" name="rpModelo">
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="form-label">Km Inicial</label>
+                                    <input type="number" class="form-control" id="rpKilometrajeInicial" name="rpKilometrajeInicial">
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="form-label">Km Final</label>
+                                    <input  type="number" class="form-control" id="rpKilometrajeFinal" name="rpKilometrajeFinal">
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <!-- OBSERVACIONES -->
+                        <div class="section">
+                            <h6>Observaciones</h6>
+
+                            <div class="row g-2">
+
+                                <div class="col-md-3">
+                                    <input type="text" class="form-control" placeholder="Otro" id="rpOtro" name="rpOtro">
+                                </div>
+
+                                <div class="col-md-3">
+                                    <textarea class="form-control" placeholder="Carrocería" id="rpObservacionCarroceria" name="rpObservacionCarroceria"></textarea>
+                                </div>
+
+                                <div class="col-md-3">
+                                    <textarea class="form-control" placeholder="Llantas" id="rpObservacionLlantas" name="rpObservacionLlantas"></textarea>
+                                </div>
+
+                                <div class="col-md-3">
+                                    <textarea class="form-control" placeholder="Int/Ext" id="rpObservacionIntExt" name="rpObservacionIntExt"></textarea>
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <!-- RESPONSABLES -->
+                        <div class="section">
+                            <h6>Responsables</h6>
+
+                            <div class="row g-2">
+
+                                <div class="col-md-4">
+                                    <input type="text" class="form-control" placeholder="Entrega" id="rpNombreEntrega" name="rpNombreEntrega">
+                                </div>
+
+                                <div class="col-md-4">
+                                    <input type="text" class="form-control" placeholder="Recibe PND" id="rpNombreRecibePND" name="rpNombreRecibePND">
+                                </div>
+
+                                <div class="col-md-4">
+                                    <input type="text" class="form-control" placeholder="Entregó" id="rpNombreEntrego" name="rpNombreEntrego">
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <input type="hidden" id="ReportName" name="ReportName" />
+
+                    </form>
+
+                </div>
+
+                <!-- FOOTER -->
+                <div class="modal-footer py-2">
+                    <button class="btn btn-sm btn-secondary" onclick="closeModal('modalCertificate')">Cerrar</button>
+                    <button class="btn btn-sm btn-primary" onclick="submitReportData('modalCertificate','formCertificate')">
+                        Generar
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    @*  Modal Autorización de pago de bono *@
+    <div class="modal fade" id="modalBono" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+
+                <!-- HEADER -->
+                <div class="modal-header py-2">
+                    <h6 class="modal-title fw-bold">
+                        Autorización de Pago de Bono
+                    </h6>
+                    <button type="button" class="btn-close" onclick="closeModal('modalBono')"></button>
+                </div>
+
+                <!-- BODY -->
+                <div class="modal-body py-2">
+
+                    <form id="formBono">
+
+                        <!-- DATOS -->
+                        <div class="section">
+                            <h6>Datos del Empleado</h6>
+
+                            <div class="row g-2">
+
+                                <div class="col-md-3">
+                                    <label class="form-label">Fecha</label>
+                                    <input type="date" class="form-control" id="rpFecha" name="rpFecha">
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="form-label">Nombre</label>
+                                    <input type="text" class="form-control" id="rpNombreEmpleado" name="rpNombreEmpleado">
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="form-label">Puesto</label>
+                                    <input type="text" class="form-control" id="rpPuesto" name="rpPuesto">
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="form-label">Empleado</label>
+                                    <input type="number" class="form-control" id="rpNEmpleadob" name="rpNEmpleadob">
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="form-label">Área</label>
+                                    <input type="text" class="form-control" id="rpAreab" name="rpAreab">
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <!-- BONO -->
+                        <div class="section">
+                            <h6>Información del Bono</h6>
+
+                            <div class="row g-2">
+
+                                <div class="col-md-4">
+                                    <label class="form-label">Motivo</label>
+                                    <input type="text" class="form-control" id="rpMotivoBono" name="rpMotivoBono">
+                                </div>
+
+                                <div class="col-md-2">
+                                    <label class="form-label">Monto</label>
+                                    <input type="number" class="form-control" id="rpMontoBono" name="rpMontoBono">
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="form-label">Primer Mes</label>
+                                    <input type="date" class="form-control" id="rpPrimerFecha" name="rpPrimerFecha">
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="form-label">Segunda Fecha</label>
+                                    <input type="date" class="form-control" id="rpSegundaFecham" name="rpSegundaFecham">
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="form-label">Quincenas</label>
+                                    <input type="number" class="form-control" id="rpNQuincenas" name="rpNQuincenas">
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="form-label">Meses</label>
+                                    <input type="number" class="form-control" id="rpNMeses" name="rpNMeses">
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <!-- OBSERVACIONES -->
+                        <div class="section">
+                            <h6>Observaciones</h6>
+
+                            <div class="row g-2">
+                                <div class="col-md-12">
+                                    <textarea class="form-control" id="rpObservaciones" name="rpObservaciones" rows="3"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <input type="hidden" id="ReportName" name="ReportName" value="@ViewData["NameReport"]" />
+
+                    </form>
+
+                </div>
+
+                <!-- FOOTER -->
+                <div class="modal-footer py-2">
+                    <button class="btn btn-sm btn-secondary" onclick="closeModal('modalBono')">Cerrar</button>
+                    <button class="btn btn-sm btn-primary" onclick="submitReportData('modalBono','formBono')">
+                        Generar
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    @*  Modal Aviso de privacidad *@
+    <div class="modal fade" id="modalPrivacyNotice" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+
+                <!-- HEADER -->
+                <div class="modal-header py-2">
+                    <h6 class="modal-title fw-bold">
+                        Aviso de Privacidad
+                    </h6>
+                    <button type="button" class="btn-close" onclick="closeModal('modalPrivacyNotice')"></button>
+                </div>
+
+                <!-- BODY -->
+                <div class="modal-body py-2">
+
+                    <form id="formAvisoPrivacidad">
+
+                        <!-- DATOS -->
+                        <div class="section">
+                            <h6>Datos Generales</h6>
+
+                            <div class="row g-2">
+
+                                <div class="col-md-4">
+                                    <label class="form-label">Nombre del Empleado</label>
+                                    <input type="text" class="form-control" id="rpNombre_Empleado" name="rpNombre_Empleado">
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label">Lugar</label>
+                                    <input type="text" class="form-control" id="rpLugar" name="rpLugar">
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label">Fecha</label>
+                                    <input type="date" class="form-control" id="rp_Fecha" name="rp_Fecha">
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <input type="hidden" id="ReportName" name="ReportName" value="@ViewData["NameReport"]" />
+
+                    </form>
+
+                </div>
+
+                <!-- FOOTER -->
+                <div class="modal-footer py-2">
+                    <button class="btn btn-sm btn-secondary" onclick="closeModal('modalPrivacyNotice')">Cerrar</button>
+                    <button class="btn btn-sm btn-primary" onclick="submitReportData('modalPrivacyNotice','formAvisoPrivacidad')">
+                        Generar
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+     @*  Modal Cambio de puesto o área del personal *@
+    <div class="modal fade" id="modalPositionChange" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+
+                <!-- HEADER -->
+                <div class="modal-header py-2">
+                    <h6 class="modal-title fw-bold">
+                        Cambio de Puesto o Área del Personal
+                    </h6>
+                    <button type="button" class="btn-close" onclick="closeModal('modalPositionChange')"></button>
+                </div>
+
+                <!-- BODY -->
+                <div class="modal-body py-2">
+
+                    <form id="formPositionChange">
+
+                        <!-- DATOS GENERALES -->
+                        <div class="section">
+                            <h6>Datos Generales</h6>
+
+                            <div class="row g-2">
+
+                                <div class="col-md-3">
+                                    <label class="form-label">Fecha de Cambio</label>
+                                    <input type="date" class="form-control" id="rpFechaCambio" name="rpFechaCambio">
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="form-label">No. Empleado</label>
+                                    <input type="number" class="form-control" id="rpNEmpleadop" name="rpNEmpleadop">
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label">Dirección / Área Actual</label>
+                                    <input type="text" class="form-control" id="rpDireccion" name="rpDireccion">
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label">Apellido Paterno</label>
+                                    <input type="text" class="form-control" id="rpApellidoP" name="rpApellidoP">
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label">Apellido Materno</label>
+                                    <input type="text" class="form-control" id="rpApellidoM" name="rpApellidoM">
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label">Nombre(s)</label>
+                                    <input type="text" class="form-control" id="rpNombre" name="rpNombre">
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label">NSS</label>
+                                    <input type="number" class="form-control" id="rpNSS" name="rpNSS">
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label">Fecha de Ingreso</label>
+                                    <input type="date" class="form-control" id="rpFechaIngreso" name="rpFechaIngreso">
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <!-- CAMBIO -->
+                        <div class="section">
+                            <h6>Detalle del Cambio</h6>
+
+                            <div class="row g-2">
+
+                                <div class="col-md-4">
+                                    <label class="form-label">¿Reubicación?</label>
+                                    <input type="checkbox" id="rpReubicacion" name="rpReubicacion">
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label">¿A dónde?</label>
+                                    <input type="text" class="form-control" id="rpDonde" name="rpDonde">
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label">Nivel</label>
+                                    <input type="text" class="form-control" id="rpNivel" name="rpNivel">
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="form-label">Hora Inicio</label>
+                                    <input type="text" class="form-control" id="rpHoraInicio" name="rpHoraInicio">
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="form-label">Hora Final</label>
+                                    <input type="text" class="form-control" id="rpHoraFinal" name="rpHoraFinal">
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label">Nuevo Puesto</label>
+                                    <input type="text" class="form-control" id="rpNombreNuevoPuesto" name="rpNombreNuevoPuesto">
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label">Nueva Área / Departamento</label>
+                                    <input type="text" class="form-control" id="rpNombreAreaNueva" name="rpNombreAreaNueva">
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label">Objetivo del Cambio</label>
+                                    <input type="text" class="form-control" id="rpObjetivoCambio" name="rpObjetivoCambio">
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <!-- RESPONSABLES -->
+                        <div class="section">
+                            <h6>Responsables</h6>
+
+                            <div class="row g-2">
+
+                                <div class="col-md-4">
+                                    <label class="form-label">Jefe Anterior</label>
+                                    <input type="text" class="form-control" id="rpJefeAnterior" name="rpJefeAnterior">
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label">Capital Humano</label>
+                                    <input type="text" class="form-control" id="rpCapitalHumano" name="rpCapitalHumano">
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label">Nuevo Jefe</label>
+                                    <input type="text" class="form-control" id="rpNuevoJefe" name="rpNuevoJefe">
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <!-- OBSERVACIONES -->
+                        <div class="section">
+                            <h6>Observaciones</h6>
+
+                            <div class="row g-2">
+                                <div class="col-md-12">
+                                    <textarea class="form-control" id="rpObservaciones" name="rpObservaciones"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <input type="hidden" id="ReportName" name="ReportName" value="@ViewData["NameReport"]" />
+
+                    </form>
+
+                </div>
+
+                <!-- FOOTER -->
+                <div class="modal-footer py-2">
+                    <button class="btn btn-sm btn-secondary" onclick="closeModal('modalPositionChange')">Cerrar</button>
+                    <button class="btn btn-sm btn-primary" onclick="submitReportData('modalPositionChange','formPositionChange')">
+                        Generar
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    @*  Modal  Carta de no adeudo en el Infonavit *@
+    <div class="modal fade" id="modalNoDebtInfonavit" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+
+                <!-- HEADER -->
+                <div class="modal-header py-2">
+                    <h6 class="modal-title fw-bold">
+                        Carta de no adeudo en el Infonavit
+                    </h6>
+                    <button type="button" class="btn-close" onclick="closeModal('modalNoDebtInfonavit')"></button>
+                </div>
+
+                <!-- BODY -->
+                <div class="modal-body py-2">
+
+                    <form id="formNoDebtInfonavit">
+
+                        <!-- DATOS -->
+                        <div class="section">
+                            <h6>Datos Generales</h6>
+
+                            <div class="row g-2">
+
+                                <div class="col-md-4">
+                                    <label class="form-label">Nombre(s)</label>
+                                    <input type="text" class="form-control" id="rpNombre_" name="rpNombre_">
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label">Fecha</label>
+                                    <input type="date" class="form-control" id="rpFecha_" name="rpFecha_">
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label">¿Crédito Infonavit activo?</label>
+                                    <div class="check-inline">
+                                        <label>
+                                            <input type="radio" name="rpSioNo" value="true"> Sí
+                                        </label>
+                                        <label>
+                                            <input type="radio" name="rpSioNo" value="false"> No
+                                        </label>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <input type="hidden" id="ReportName" name="ReportName" value="@ViewData["NameReport"]" />
+
+                    </form>
+
+                </div>
+
+                <!-- FOOTER -->
+                <div class="modal-footer py-2">
+                    <button class="btn btn-sm btn-secondary" onclick="closeModal('modalNoDebtInfonavit')">Cerrar</button>
+                    <button class="btn btn-sm btn-primary" onclick="submitReportData('modalNoDebtInfonavit','formNoDebtInfonavit')">
+                        Generar
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    @*  Modal   Carta Finiquito *@
+    <div class="modal fade" id="modalSettlementLetter" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+
+                <!-- HEADER -->
+                <div class="modal-header py-2">
+                    <h6 class="modal-title fw-bold">
+                        Carta Finiquito
+                    </h6>
+                    <button type="button" class="btn-close" onclick="closeModal('modalSettlementLetter')"></button>
+                </div>
+
+                <!-- BODY -->
+                <div class="modal-body py-2">
+
+                    <form id="formSettlementLetter">
+
+                        <!-- DATOS GENERALES -->
+                        <div class="section">
+                            <h6>Datos Generales</h6>
+
+                            <div class="row g-2">
+
+                                <div class="col-md-4">
+                                    <label class="form-label">Nombre Completo</label>
+                                    <input type="text" class="form-control" id="rpNombref" name="rpNombref">
+                                </div>
+
+                                <div class="col-md-8">
+                                    <label class="form-label">Nombre de la Empresa</label>
+                                    <input type="text" class="form-control" id="rpNombreEmpresa" name="rpNombreEmpresa">
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label">Fecha</label>
+                                    <input type="date" class="form-control" id="rpFechaf" name="rpFechaf">
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label">Número</label>
+                                    <input type="number" class="form-control" id="rpNumero" name="rpNumero">
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label">Fecha Final</label>
+                                    <input type="date" class="form-control" id="rpFechaFinal" name="rpFechaFinal">
+                                </div>
+
+                                <div class="col-md-12">
+                                    <label class="form-label">Texto</label>
+                                    <textarea class="form-control" id="rpTexto" name="rpTexto" rows="4"></textarea>
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <input type="hidden" id="ReportName" name="ReportName" value="@ViewData["NameReport"]" />
+
+                    </form>
+
+                </div>
+
+                <!-- FOOTER -->
+                <div class="modal-footer py-2">
+                    <button class="btn btn-sm btn-secondary" onclick="closeModal('modalSettlementLetter')">
+                        Cerrar
+                    </button>
+
+                    <button class="btn btn-sm btn-primary"
+                            onclick="submitReportData('modalSettlementLetter','formSettlementLetter')">
+                        Generar
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    @*  Modal Carta instrucción *@
+    <div class="modal fade" id="modalInstructionLetter" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+
+                <!-- HEADER -->
+                <div class="modal-header py-2">
+                    <h6 class="modal-title fw-bold">
+                        Carta Instrucción
+                    </h6>
+                    <button type="button" class="btn-close" onclick="closeModal('modalCollectionMeetingReport')"></button>
+                </div>
+
+                <!-- BODY -->
+                <div class="modal-body py-2">
+
+                    <form id="formInstructionLetter">
+
+                        <!-- DATOS GENERALES -->
+                        <div class="section">
+                            <h6>Datos Generales</h6>
+
+                            <div class="row g-2">
+
+                                <div class="col-md-4">
+                                    <label class="form-label">Fecha</label>
+                                    <input type="date"
+                                           class="form-control"
+                                           id="rpFechai"
+                                           name="rpFechai">
+                                </div>
+
+                                <div class="col-md-8">
+                                    <label class="form-label">Nombre del Licenciado</label>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="rpNombreLic"
+                                           name="rpNombreLic">
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label">Fecha del Pagaré</label>
+                                    <input type="date"
+                                           class="form-control"
+                                           id="rpFechaPagare"
+                                           name="rpFechaPagare">
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label">Cantidad en Número</label>
+                                    <input type="number"
+                                           step="0.01"
+                                           class="form-control"
+                                           id="rpCantidadNumero"
+                                           name="rpCantidadNumero">
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label">Cantidad en Letra</label>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="rpCantidadLetra"
+                                           name="rpCantidadLetra">
+                                </div>
+
+                                <div class="col-md-12">
+                                    <label class="form-label">Nombres</label>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="rpNombres"
+                                           name="rpNombres">
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label">Cantidad Demandada</label>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="rpCantidadD"
+                                           name="rpCantidadD">
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label">Cantidad Demandada en Letra</label>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="rpCantidadDL"
+                                           name="rpCantidadDL">
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <input type="hidden"
+                               id="ReportName"
+                               name="ReportName"
+                               value="@ViewData["NameReport"]" />
+
+                    </form>
+
+                </div>
+
+                <!-- FOOTER -->
+                <div class="modal-footer py-2">
+
+                    <button class="btn btn-sm btn-secondary"
+                            onclick="closeModal('modalInstructionLetter')">
+                        Cerrar
+                    </button>
+
+                    <button class="btn btn-sm btn-primary"
+                            onclick="submitReportData('modalInstructionLetter','formInstructionLetter')">
+                        Generar
+                    </button>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    @*  Modal  Carta Responsiva de Vehículo Asignado *@
+    <div class="modal fade" id="modalVehicleResponsibilityLetter" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+
+                <!-- HEADER -->
+                <div class="modal-header py-2">
+                    <h6 class="modal-title fw-bold">
+                        Carta Responsiva de Vehículo Asignado
+                    </h6>
+                    <button type="button" class="btn-close" onclick="closeModal('modalVehicleResponsibilityLetter')"></button>
+                </div>
+
+                <!-- BODY -->
+                <div class="modal-body py-2">
+
+                    <form id="formVehicleResponsibilityLetter">
+
+                        <!-- DATOS GENERALES -->
+                        <div class="section">
+                            <h6>Datos Generales</h6>
+
+                            <div class="row g-2">
+
+                                <div class="col-md-4">
+                                    <label class="form-label">Fecha</label>
+                                    <input type="date"
+                                           class="form-control"
+                                           id="rpFechar"
+                                           name="rpFechar">
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label">Placas del Vehículo</label>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="rpPlacasr"
+                                           name="rpPlacasr">
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label">Marca del Vehículo</label>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="rpMarca"
+                                           name="rpMarca">
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label">Modelo</label>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="rpModelor"
+                                           name="rpModelor">
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label">No. Motor</label>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="rpMotor"
+                                           name="rpMotor">
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label">No. Serie</label>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="rpSerie"
+                                           name="rpSerie">
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label">Área Asignada</label>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="rpArear"
+                                           name="rpArear">
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label">Nombre</label>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="rpNombrer"
+                                           name="rpNombrer">
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label">No. Licencia</label>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="rpLicencia"
+                                           name="rpLicencia">
+                                </div>
+
+                                <div class="col-md-8">
+                                    <label class="form-label">Domicilio INE</label>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="rpDomicilio"
+                                           name="rpDomicilio">
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <input type="hidden"
+                               id="ReportName"
+                               name="ReportName"
+                               value="@ViewData["NameReport"]" />
+
+                    </form>
+
+                </div>
+
+                <!-- FOOTER -->
+                <div class="modal-footer py-2">
+
+                    <button class="btn btn-sm btn-secondary"
+                            onclick="closeModal('modalVehicleResponsibilityLetter')">
+                        Cerrar
+                    </button>
+
+                    <button class="btn btn-sm btn-primary"
+                            onclick="submitReportData('modalVehicleResponsibilityLetter','formVehicleResponsibilityLetter')">
+                        Generar
+                    </button>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    @*  Modal  Convenio individual de beca *@
+    <div class="modal fade" id="modalScholarshipAgreement" tabindex="-1">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content">
+
+                <!-- HEADER -->
+                <div class="modal-header py-2">
+                    <h6 class="modal-title fw-bold">
+                        Convenio Individual de Beca
+                    </h6>
+                    <button type="button" class="btn-close" onclick="closeModal('modalScholarshipAgreement')"></button>
+                </div>
+
+                <!-- BODY -->
+                <div class="modal-body py-2">
+
+                    <form id="formScholarshipAgreement">
+
+                        <!-- DATOS GENERALES -->
+                        <div class="section">
+                            <h6>Datos Generales</h6>
+
+                            <div class="row g-2">
+
+                                <div class="col-md-4">
+                                    <label class="form-label">Área Asignada</label>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="rpAreat"
+                                           name="rpAreat">
+                                </div>
+
+                                <div class="col-md-8">
+                                    <label class="form-label">Domicilio INE</label>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="rpDomiciliot"
+                                           name="rpDomiciliot">
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label">Nombre</label>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="rpNombret"
+                                           name="rpNombret">
+                                </div>
+
+                                <div class="col-md-2">
+                                    <label class="form-label">Edad</label>
+                                    <input type="number"
+                                           class="form-control"
+                                           id="rpEdad"
+                                           name="rpEdad">
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="form-label">Estado Civil</label>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="rpEstadoCivil"
+                                           name="rpEstadoCivil">
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="form-label">Sexo</label>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="rpSexo"
+                                           name="rpSexo">
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label">RFC</label>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="rpRFC"
+                                           name="rpRFC">
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label">CURP</label>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="rpCURP"
+                                           name="rpCURP">
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label">Domicilio Becario</label>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="rpDomicilioBt"
+                                           name="rpDomicilioBt">
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <!-- DATOS ACADÉMICOS -->
+                        <div class="section">
+                            <h6>Datos Académicos</h6>
+
+                            <div class="row g-2">
+
+                                <div class="col-md-3">
+                                    <label class="form-label">Semestre/Cuatrimestre</label>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="rpSC"
+                                           name="rpSC">
+                                </div>
+
+                                <div class="col-md-5">
+                                    <label class="form-label">Carrera</label>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="rpCarrera"
+                                           name="rpCarrera">
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label">Universidad</label>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="rpNombreU"
+                                           name="rpNombreU">
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="form-label">Matrícula</label>
+                                    <input type="number"
+                                           class="form-control"
+                                           id="rpMatricula"
+                                           name="rpMatricula">
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="form-label">Fecha Inicio</label>
+                                    <input type="date"
+                                           class="form-control"
+                                           id="rpFechaIt"
+                                           name="rpFechaIt">
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="form-label">Fecha Término</label>
+                                    <input type="date"
+                                           class="form-control"
+                                           id="rpFechaTt"
+                                           name="rpFechaTt">
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="form-label">Sueldo / Beca</label>
+                                    <input type="number"
+                                           step="0.01"
+                                           class="form-control"
+                                           id="rpBeca"
+                                           name="rpBeca">
+                                </div>
+
+                                <div class="col-md-12">
+                                    <label class="form-label">Sueldo en Letra</label>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="rpBecaL"
+                                           name="rpBecaL">
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <input type="hidden"
+                               id="ReportName"
+                               name="ReportName"
+                               value="@ViewData["NameReport"]" />
+
+                    </form>
+
+                </div>
+
+                <!-- FOOTER -->
+                <div class="modal-footer py-2">
+
+                    <button class="btn btn-sm btn-secondary"
+                            onclick="closeModal('modalScholarshipAgreement')">
+                        Cerrar
+                    </button>
+
+                    <button class="btn btn-sm btn-primary"
+                            onclick="submitReportData('modalScholarshipAgreement','formScholarshipAgreement')">
+                        Generar
+                    </button>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    @*  Modal   Derechos Intelectuales*@
+    <div class="modal fade" id="modalIntellectualPropertyRights" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+
+                <!-- HEADER -->
+                <div class="modal-header py-2">
+                    <h6 class="modal-title fw-bold">
+                        Derechos Intelectuales
+                    </h6>
+                    <button type="button" class="btn-close" onclick="closeModal('modalIntellectualPropertyRights')"></button>
+                </div>
+
+                <!-- BODY -->
+                <div class="modal-body py-2">
+
+                    <form id="formIntellectualPropertyRights">
+
+                        <!-- DATOS GENERALES -->
+                        <div class="section">
+                            <h6>Datos Generales</h6>
+
+                            <div class="row g-2">
+
+                                <div class="col-md-4">
+                                    <label class="form-label">Fecha del Documento</label>
+                                    <input type="date"
+                                           class="form-control"
+                                           id="rpFechaDocumentoi"
+                                           name="rpFechaDocumentoi">
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label">Área</label>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="rpArej"
+                                           name="rpArej">
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label">Puesto</label>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="rpPuestoi"
+                                           name="rpPuestoi">
+                                </div>
+
+                                <div class="col-md-12">
+                                    <label class="form-label">Nombre del Colaborador</label>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="rpNombreColaboradori"
+                                           name="rpNombreColaboradori">
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <input type="hidden"
+                               id="ReportName"
+                               name="ReportName"
+                               value="@ViewData["NameReport"]" />
+
+                    </form>
+
+                </div>
+
+                <!-- FOOTER -->
+                <div class="modal-footer py-2">
+
+                    <button class="btn btn-sm btn-secondary"
+                            onclick="closeModal('modalIntellectualPropertyRights')">
+                        Cerrar
+                    </button>
+
+                    <button class="btn btn-sm btn-primary"
+                            onclick="submitReportData('modalIntellectualPropertyRights','formIntellectualPropertyRights')">
+                        Generar
+                    </button>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    @*  Modal Formato de solicitud de cambios a la base de datos*@
+    <div class="modal fade" id="modalDatabaseChangeRequest" tabindex="-1">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+
+                <!-- HEADER -->
+                <div class="modal-header py-2">
+                    <h6 class="modal-title fw-bold">
+                        Solicitud de Cambio Base de Datos
+                    </h6>
+
+                    <button type="button"
+                            class="btn-close"
+                            onclick="closeModal('modalDatabaseChangeRequest')">
+                    </button> 
+                </div>
+
+                <!-- BODY -->
+                <div class="modal-body py-2">
+
+                    <form id="formDatabaseChangeRequest">
+
+                        <!-- DATOS GENERALES -->
+                        <div class="section">
+                            <h6>Datos Generales</h6>
+
+                            <div class="row g-2">
+
+                                <div class="col-md-4">
+                                    <label class="form-label">
+                                        Clave de Requerimiento
+                                    </label>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="rpClave"
+                                           name="rpClave">
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label">
+                                        Clave Solicitud Base de Datos
+                                    </label>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="rpClaveS"
+                                           name="rpClaveS">
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label">
+                                        Fase de Detección
+                                    </label>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="rpFase"
+                                           name="rpFase">
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label">
+                                        Fecha
+                                    </label>
+                                    <input type="date"
+                                           class="form-control"
+                                           id="rpFechadb"
+                                           name="rpFechadb">
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label">
+                                        Sistema
+                                    </label>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="rpSistema"
+                                           name="rpSistema">
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label">
+                                        Base de Datos
+                                    </label>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="rpBD"
+                                           name="rpBD">
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label">
+                                        Nombre del Solicitante
+                                    </label>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="rpNSolicitante"
+                                           name="rpNSolicitante">
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label">
+                                        Elemento de la Configuración
+                                    </label>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="rpElemento"
+                                           name="rpElemento">
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label">
+                                        Versión
+                                    </label>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="rpVersion"
+                                           name="rpVersion">
+                                </div>
+
+                                <div class="col-md-8">
+                                    <label class="form-label">
+                                        Descripción del Cambio
+                                    </label>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="rpDescripcion"
+                                           name="rpDescripcion">
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label">
+                                        Justificación del Cambio
+                                    </label>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="rpJustificacion"
+                                           name="rpJustificacion">
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label">
+                                        Observaciones
+                                    </label>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="rpObservacionesdb"
+                                           name="rpObservacionesdb">
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label">
+                                        Nombre del Elemento Afectado por el Cambio
+                                    </label>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="rpNAfectado1"
+                                           name="rpNAfectado1">
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label">
+                                        Nombre del Elemento Afectado por el Cambio 2
+                                    </label>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="rpNAfectado2"
+                                           name="rpNAfectado2">
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label">
+                                        Nombre de Sistemas
+                                    </label>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="rpND"
+                                           name="rpND">
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label">
+                                        Desarrollador Responsable
+                                    </label>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="rpNDR"
+                                           name="rpNDR">
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <!-- CHECKBOXES -->
+                        <div class="section mt-3">
+                            <h6>Validaciones</h6>
+
+                            <div class="row g-2">
+
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input"
+                                               type="checkbox"
+                                               id="rpRNuevo"
+                                               name="rpRNuevo">
+
+                                        <label class="form-check-label" for="rpRNuevo">
+                                            ¿Requerimiento Nuevo?
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input"
+                                               type="checkbox"
+                                               id="rpRCambio"
+                                               name="rpRCambio">
+
+                                        <label class="form-check-label" for="rpRCambio">
+                                            ¿Necesitas un cambio?
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input"
+                                               type="checkbox"
+                                               id="rpRDefecto"
+                                               name="rpRDefecto">
+
+                                        <label class="form-check-label" for="rpRDefecto">
+                                            ¿Tiene algún defecto?
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input"
+                                               type="checkbox"
+                                               id="rpRMejora"
+                                               name="rpRMejora">
+
+                                        <label class="form-check-label" for="rpRMejora">
+                                            ¿Necesita una mejora?
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input"
+                                               type="checkbox"
+                                               id="rpAutorizacion"
+                                               name="rpAutorizacion">
+
+                                        <label class="form-check-label" for="rpAutorizacion">
+                                            ¿Autorizas los cambios?
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input"
+                                               type="checkbox"
+                                               id="rpNoAutorizacion"
+                                               name="rpNoAutorizacion">
+
+                                        <label class="form-check-label" for="rpNoAutorizacion">
+                                            ¿No autorizas?
+                                        </label>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <input type="hidden"
+                               id="ReportName"
+                               name="ReportName"
+                               value="@ViewData["NameReport"]" />
+
+                    </form>
+
+                </div>
+
+                <!-- FOOTER -->
+                <div class="modal-footer py-2">
+
+                    <button class="btn btn-sm btn-secondary"
+                            onclick="closeModal('modalDatabaseChangeRequest')">
+                        Cerrar
+                    </button>
+
+                    <button class="btn btn-sm btn-primary"
+                            onclick="submitReportData('modalDatabaseChangeRequest','formDatabaseChangeRequest')">
+                        Generar
+                    </button>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    @*  Modal Formato de Solicitud de Requerimientos de Desarrollo de Software*@
+    <div class="modal fade" id="modalSoftwareDevelopmentRequest" tabindex="-1">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+
+                <!-- HEADER -->
+                <div class="modal-header py-2">
+                    <h6 class="modal-title fw-bold">
+                        Formato de Solicitud de Requerimientos de Desarrollo de Software
+                    </h6>
+
+                    <button type="button"
+                            class="btn-close"
+                            onclick="closeModal('modalSoftwareDevelopmentRequest')">
+                    </button> 
+                </div>
+
+                <!-- BODY -->
+                <div class="modal-body py-2">
+
+                    <form id="formSoftwareDevelopmentRequest">
+
+                        <!-- DATOS GENERALES -->
+                        <div class="section">
+                            <h6>Datos Generales</h6>
+
+                            <div class="row g-2">
+
+                                <div class="col-md-4">
+                                    <label class="form-label">
+                                        Fecha del Requerimiento
+                                    </label>
+                                    <input type="date"
+                                           class="form-control"
+                                           id="rpFechasw"
+                                           name="rpFechasw">
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label">
+                                        Nombre del Solicitante
+                                    </label>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="rpNombresw"
+                                           name="rpNombresw">
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label">
+                                        Área
+                                    </label>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="rpAreasw"
+                                           name="rpAreasw">
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label">
+                                        Clave de Requerimiento
+                                    </label>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="rpCR"
+                                           name="rpCR">
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label">
+                                        Nombre de Sistemas
+                                    </label>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="rpNombreS"
+                                           name="rpNombreS">
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label">
+                                        Nombre del Sistema 2
+                                    </label>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="rpNombreS2"
+                                           name="rpNombreS2">
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label">
+                                        Nombre del Sistema 3
+                                    </label>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="rpNombreS3"
+                                           name="rpNombreS3">
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label">
+                                        Módulo
+                                    </label>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="rpModulo"
+                                           name="rpModulo">
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label">
+                                        Módulo 2
+                                    </label>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="rpModulo2"
+                                           name="rpModulo2">
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label">
+                                        Módulo 3
+                                    </label>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="rpModulo3"
+                                           name="rpModulo3">
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label">
+                                        Comentarios
+                                    </label>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="rpComentarios"
+                                           name="rpComentarios">
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label">
+                                        Comentarios 2
+                                    </label>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="rpComentarios2"
+                                           name="rpComentarios2">
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label">
+                                        Comentarios 3
+                                    </label>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="rpComentarios3"
+                                           name="rpComentarios3">
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label">
+                                        Descripción del Requerimiento
+                                    </label>
+                                    <textarea class="form-control"
+                                              rows="3"
+                                              id="rpDescripcionsw"
+                                              name="rpDescripcionsw"></textarea>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label">
+                                        Justificación del Requerimiento
+                                    </label>
+                                    <textarea class="form-control"
+                                              rows="3"
+                                              id="rpJustificacionsw"
+                                              name="rpJustificacionsw"></textarea>
+                                </div>
+
+                                <div class="col-md-12">
+                                    <label class="form-label">
+                                        Comentarios (Uso exclusivo de sistemas)
+                                    </label>
+                                    <textarea class="form-control"
+                                              rows="3"
+                                              id="rpComentariosw"
+                                              name="rpComentariosw"></textarea>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label">
+                                        Nombre Gerente o Director Solicitante
+                                    </label>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="rpNombreD"
+                                           name="rpNombreD">
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label">
+                                        Nombre Director General Adjunto
+                                    </label>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="rpNombreG"
+                                           name="rpNombreG">
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label">
+                                        Director de Sistemas
+                                    </label>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="rpNombreDS"
+                                           name="rpNombreDS">
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <!-- CHECKBOXES -->
+                        <div class="section mt-3">
+                            <h6>Validaciones</h6>
+
+                            <div class="row g-2">
+
+                                <div class="col-md-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input"
+                                               type="checkbox"
+                                               id="rpNuevo"
+                                               name="rpNuevo">
+
+                                        <label class="form-check-label" for="rpNuevo">
+                                            ¿Necesitas un nuevo equipo?
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input"
+                                               type="checkbox"
+                                               id="rpCambio"
+                                               name="rpCambio">
+
+                                        <label class="form-check-label" for="rpCambio">
+                                            ¿Necesitas cambiar tu equipo?
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input"
+                                               type="checkbox"
+                                               id="rpDefecto"
+                                               name="rpDefecto">
+
+                                        <label class="form-check-label" for="rpDefecto">
+                                            ¿Tu equipo está defectuoso?
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input"
+                                               type="checkbox"
+                                               id="rpMejora"
+                                               name="rpMejora">
+
+                                        <label class="form-check-label" for="rpMejora">
+                                            ¿Necesita alguna mejora tu equipo?
+                                        </label>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <input type="hidden"
+                               id="ReportName"
+                               name="ReportName"
+                               value="@ViewData["NameReport"]" />
+
+                    </form>
+
+                </div>
+
+                <!-- FOOTER -->
+                <div class="modal-footer py-2">
+
+                    <button class="btn btn-sm btn-secondary"
+                            onclick="closeModal('modalSoftwareDevelopmentRequest')">
+                        Cerrar
+                    </button>
+
+                    <button class="btn btn-sm btn-primary"
+                            onclick="submitReportData('modalSoftwareDevelopmentRequest','formSoftwareDevelopmentRequest')">
+                        Generar
+                    </button>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    @*  Modal  Notificación de Retardo*@
+    <div class="modal fade" id="modalDelayNotification" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+
+                <!-- HEADER -->
+                <div class="modal-header py-2">
+                    <h6 class="modal-title fw-bold">
+                        Notificación de Retardo
+                    </h6>
+
+                     <button type="button"
+                            class="btn-close"
+                            onclick="closeModal('modalDelayNotification')">
+                    </button> 
+                </div>
+
+                <!-- BODY -->
+                <div class="modal-body py-2">
+
+                    <form id="formDelayNotification">
+
+                        <!-- DATOS GENERALES -->
+                        <div class="section">
+                            <h6>Datos Generales</h6>
+
+                            <div class="row g-2">
+
+                                <div class="col-md-4">
+                                    <label class="form-label">
+                                        Fecha
+                                    </label>
+
+                                    <input type="date"
+                                           class="form-control"
+                                           id="rpFechant"
+                                           name="rpFechant">
+                                </div>
+
+                                <div class="col-md-8">
+                                    <label class="form-label">
+                                        Nombre
+                                    </label>
+
+                                    <input type="text"
+                                           class="form-control"
+                                           id="rpNombrent"
+                                           name="rpNombrent">
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label">
+                                        Puesto
+                                    </label>
+
+                                    <input type="text"
+                                           class="form-control"
+                                           id="rpPuestont"
+                                           name="rpPuestont">
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label">
+                                        Departamento
+                                    </label>
+
+                                    <input type="text"
+                                           class="form-control"
+                                           id="rpDepartamentont"
+                                           name="rpDepartamentont">
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label">
+                                        Fecha Retardo
+                                    </label>
+
+                                    <input type="date"
+                                           class="form-control"
+                                           id="rpFechaHoy"
+                                           name="rpFechaHoy">
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label">
+                                        Jornada Laboral
+                                    </label>
+
+                                    <input type="text"
+                                           class="form-control"
+                                           id="rpJornada"
+                                           name="rpJornada">
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label">
+                                        Día de Sanción
+                                    </label>
+
+                                    <input type="date"
+                                           class="form-control"
+                                           id="rpSancion"
+                                           name="rpSancion">
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label">
+                                        Nombre del Jefe Directo
+                                    </label>
+
+                                    <input type="text"
+                                           class="form-control"
+                                           id="rpNJefe"
+                                           name="rpNJefe">
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label">
+                                        Gerencia de Capital Humano
+                                    </label>
+
+                                    <input type="text"
+                                           class="form-control"
+                                           id="rpRH"
+                                           name="rpRH">
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <input type="hidden"
+                               id="ReportName"
+                               name="ReportName"
+                               value="@ViewData["NameReport"]" />
+
+                    </form>
+
+                </div>
+
+                <!-- FOOTER -->
+                <div class="modal-footer py-2">
+
+                    <button class="btn btn-sm btn-secondary"
+                            onclick="closeModal('modalDelayNotification')">
+                        Cerrar
+                    </button>
+
+                    <button class="btn btn-sm btn-primary"
+                            onclick="submitReportData('modalDelayNotification','formDelayNotification')">
+                        Generar
+                    </button>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    @*  Modal Reporte de Fallas de Vehículos*@
+    <div class="modal fade" id="modalVehicleFailureReport" tabindex="-1">
+
+
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+
+                <!-- HEADER -->
+                <div class="modal-header py-2">
+                    <h6 class="modal-title fw-bold">
+                        Reporte de Fallas de Vehículos
+                    </h6>
+
+                    <button type="button"
+                            class="btn-close"
+                            onclick="closeModal('modalVehicleFailureReport')">
+                    </button>
+                </div>
+
+                <!-- BODY -->
+                <div class="modal-body py-2">
+
+                    <form id="formVehicleFailureReport">
+
+                        <!-- DATOS GENERALES -->
+                        <div class="section">
+                            <h6>Datos del Vehículo</h6>
+
+                            <div class="row g-2">
+
+                                <div class="col-md-4">
+                                    <label class="form-label">
+                                        Fecha
+                                    </label>
+
+                                    <input type="date"
+                                           class="form-control"
+                                           id="rpFechavh"
+                                           name="rpFechavh">
+                                </div>
+
+                                <div class="col-md-8">
+                                    <label class="form-label">
+                                        Nombre
+                                    </label>
+
+                                    <input type="text"
+                                           class="form-control"
+                                           id="rpNombrevh"
+                                           name="rpNombrevh">
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label">
+                                        Tipo de Vehículo
+                                    </label>
+
+                                    <input type="text"
+                                           class="form-control"
+                                           id="rpTipoVehiculo"
+                                           name="rpTipoVehiculo">
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label">
+                                        Color
+                                    </label>
+
+                                    <input type="text"
+                                           class="form-control"
+                                           id="rpColor"
+                                           name="rpColor">
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label">
+                                        Marca
+                                    </label>
+
+                                    <input type="text"
+                                           class="form-control"
+                                           id="rpMarcavh"
+                                           name="rpMarcavh">
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label">
+                                        Modelo
+                                    </label>
+
+                                    <input type="text"
+                                           class="form-control"
+                                           id="rpModelovh"
+                                           name="rpModelovh">
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label">
+                                        Número de Placas
+                                    </label>
+
+                                    <input type="text"
+                                           class="form-control"
+                                           id="rpNPlacasvh"
+                                           name="rpNPlacasvh">
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label">
+                                        Año
+                                    </label>
+
+                                    <input type="number"
+                                           class="form-control"
+                                           id="rpAño"
+                                           name="rpAño">
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label">
+                                        Kilometraje
+                                    </label>
+
+                                    <input type="text"
+                                           class="form-control"
+                                           id="rpKilometraje"
+                                           name="rpKilometraje">
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label">
+                                        Número de Chasis
+                                    </label>
+
+                                    <input type="text"
+                                           class="form-control"
+                                           id="rpNChasis"
+                                           name="rpNChasis">
+                                </div>
+
+                                <div class="col-md-12">
+                                    <label class="form-label">
+                                        Descripción de las Fallas
+                                    </label>
+
+                                    <textarea class="form-control"
+                                              rows="4"
+                                              id="rpDescripcionvh"
+                                              name="rpDescripcionvh"></textarea>
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <input type="hidden"
+                               id="ReportName"
+                               name="ReportName"
+                               value="@ViewData["NameReport"]" />
+
+                    </form>
+
+                </div>
+
+                <!-- FOOTER -->
+                <div class="modal-footer py-2">
+
+                    <button class="btn btn-sm btn-secondary"
+                            onclick="closeModal('modalVehicleFailureReport')">
+                        Cerrar
+                    </button>
+
+                    <button class="btn btn-sm btn-primary"
+                            onclick="submitReportData('modalVehicleFailureReport','formVehicleFailureReport')">
+                        Generar
+                    </button>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    @*  Modal Reporte de junta de cobranza*@
+    <div class="modal fade" id="modalCollectionMeetingReport" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+
+                <!-- HEADER -->
+                <div class="modal-header py-2">
+                    <h6 class="modal-title fw-bold">
+                        Reporte de Junta de Cobranza
+                    </h6>
+
+                    <button type="button" class="btn-close" onclick="closeModal('modalCollectionMeetingReport')">
+                    </button>
+                </div>
+
+                <!-- BODY -->
+                <div class="modal-body py-2">
+
+                    <form id="formCollectionMeetingReport">
+
+                        <div class="section">
+                            <h6>Información de la Junta</h6>
+
+                            <div class="row g-2">
+
+                                <div class="col-md-12">
+                                    <label class="form-label">
+                                        Asistentes
+                                    </label>
+
+                                    <textarea class="form-control"
+                                              rows="3"
+                                              id="rpAsistentes"
+                                              name="rpAsistentes"></textarea>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label">
+                                        Fecha de la Cartera Vencida
+                                    </label>
+
+                                    <input type="date"
+                                           class="form-control"
+                                           id="rpFechaCarteraVencida"
+                                           name="rpFechaCarteraVencida">
+                                </div>
+
+                                <div class="col-md-8">
+                                    <label class="form-label">
+                                        Reporte de Cartera Vencida
+                                    </label>
+
+                                    <textarea class="form-control"
+                                              rows="3"
+                                              id="rpReporteCarteraVencida"
+                                              name="rpReporteCarteraVencida"></textarea>
+                                </div>
+
+                                <div class="col-md-12">
+                                    <label class="form-label">
+                                        Proceso de Demanda
+                                    </label>
+
+                                    <textarea class="form-control"
+                                              rows="3"
+                                              id="rpProceso"
+                                              name="rpProceso"></textarea>
+                                </div>
+
+                                <div class="col-md-12">
+                                    <label class="form-label">
+                                        Convenios Judiciales y Reestructuras
+                                    </label>
+
+                                    <textarea class="form-control"
+                                              rows="3"
+                                              id="rpConvenios"
+                                              name="rpConvenios"></textarea>
+                                </div>
+
+                                <div class="col-md-12">
+                                    <label class="form-label">
+                                        Desistimientos y Avisos de Pago
+                                    </label>
+
+                                    <textarea class="form-control"
+                                              rows="3"
+                                              id="rpDesistimientos"
+                                              name="rpDesistimientos"></textarea>
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <input type="hidden"
+                               id="ReportName"
+                               name="ReportName"
+                               value="@ViewData["NameReport"]" />
+
+                    </form>
+
+                </div>
+
+                <!-- FOOTER -->
+                <div class="modal-footer py-2">
+
+                    <button class="btn btn-sm btn-secondary"
+                            type="button"
+                            onclick="closeModal('modalCollectionMeetingReport')">
+                        Cerrar
+                    </button>
+
+                    <button class="btn btn-sm btn-primary"
+                            type="button"
+                            onclick="submitReportData('modalCollectionMeetingReport','formCollectionMeetingReport')">
+                        Generar
+                    </button>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    @*  Modal  Solicitud de préstamo temporal*@    
+    <div class="modal fade" id="modalTemporaryLoanRequest" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+
+                <!-- HEADER -->
+                <div class="modal-header py-2">
+                    <h6 class="modal-title fw-bold">
+                        Solicitud de préstamo temporal
+                    </h6>
+
+                    <button type="button"
+                            class="btn-close"
+                            onclick="closeModal('modalTemporaryLoanRequest')">
+                    </button>
+                </div>
+
+                <!-- BODY -->
+                <div class="modal-body py-2">
+
+                    <form id="formTemporaryLoanRequest">
+
+                        <div class="section">
+                            <h6>Información de la Solicitud</h6>
+
+                            <div class="row g-2">
+
+                                <!-- Fecha solicitud -->
+                                <div class="col-md-4">
+                                    <label class="form-label">
+                                        Fecha de solicitud
+                                    </label>
+
+                                    <input type="date"
+                                           class="form-control"
+                                           id="rpFechapt"
+                                           name="rpFechapt">
+                                </div>
+
+                                <!-- Nombre -->
+                                <div class="col-md-8">
+                                    <label class="form-label">
+                                        Nombre del empleado
+                                    </label>
+
+                                    <input type="text"
+                                           class="form-control"
+                                           id="rpNombrept"
+                                           name="rpNombrept">
+                                </div>
+
+                                <!-- Nómina -->
+                                <div class="col-md-4">
+                                    <label class="form-label">
+                                        No Nómina
+                                    </label>
+
+                                    <input type="number"
+                                           class="form-control"
+                                           id="rpNomina"
+                                           name="rpNomina">
+                                </div>
+
+                                <!-- Fecha ingreso -->
+                                <div class="col-md-4">
+                                    <label class="form-label">
+                                        Fecha de ingreso
+                                    </label>
+
+                                    <input type="date"
+                                           class="form-control"
+                                           id="rpFechaIpt"
+                                           name="rpFechaIpt">
+                                </div>
+
+                                <!-- Área -->
+                                <div class="col-md-4">
+                                    <label class="form-label">
+                                        Área
+                                    </label>
+
+                                    <input type="text"
+                                           class="form-control"
+                                           id="rpAreapt"
+                                           name="rpAreapt">
+                                </div>
+
+                                <!-- Motivo -->
+                                <div class="col-md-12">
+                                    <label class="form-label">
+                                        Motivo de solicitud
+                                    </label>
+
+                                    <textarea class="form-control"
+                                              rows="3"
+                                              id="rpMotivopt"
+                                              name="rpMotivopt"></textarea>
+                                </div>
+
+                                <!-- Cantidad número -->
+                                <div class="col-md-4">
+                                    <label class="form-label">
+                                        Cantidad en número
+                                    </label>
+
+                                    <input type="number"
+                                           class="form-control"
+                                           id="rpCantidadNpt"
+                                           name="rpCantidadNpt">
+                                </div>
+
+                                <!-- Cantidad letra -->
+                                <div class="col-md-8">
+                                    <label class="form-label">
+                                        Cantidad en letra
+                                    </label>
+
+                                    <input type="text"
+                                           class="form-control"
+                                           id="rpCantidadLpt"
+                                           name="rpCantidadLpt">
+                                </div>
+
+                                <!-- Primer pago -->
+                                <div class="col-md-4">
+                                    <label class="form-label">
+                                        Primer pago
+                                    </label>
+
+                                    <input type="number"
+                                           class="form-control"
+                                           id="rpPrimerPago"
+                                           name="rpPrimerPago">
+                                </div>
+
+                                <!-- Fecha último pago -->
+                                <div class="col-md-4">
+                                    <label class="form-label">
+                                        Fecha del último pago
+                                    </label>
+
+                                    <input type="date"
+                                           class="form-control"
+                                           id="rpFechaUpt"
+                                           name="rpFechaUpt">
+                                </div>
+
+                                <!-- Número pagos -->
+                                <div class="col-md-4">
+                                    <label class="form-label">
+                                        No. pagos
+                                    </label>
+
+                                    <input type="number"
+                                           class="form-control"
+                                           id="rpNoPagos"
+                                           name="rpNoPagos">
+                                </div>
+
+                                <!-- Observaciones -->
+                                <div class="col-md-12">
+                                    <label class="form-label">
+                                        Observaciones
+                                    </label>
+
+                                    <textarea class="form-control"
+                                              rows="3"
+                                              id="rpObservacionespt"
+                                              name="rpObservacionespt"></textarea>
+                                </div>
+
+                                <!-- Jefe -->
+                                <div class="col-md-6">
+                                    <label class="form-label">
+                                        Jefe inmediato
+                                    </label>
+
+                                    <input type="text"
+                                           class="form-control"
+                                           id="rpJefe"
+                                           name="rpJefe">
+                                </div>
+
+                                <!-- Capital humano -->
+                                <div class="col-md-6">
+                                    <label class="form-label">
+                                        Capital humano
+                                    </label>
+
+                                    <input type="text"
+                                           class="form-control"
+                                           id="rpCapital"
+                                           name="rpCapital">
+                                </div>
+
+                                <!-- Descuento -->
+                                <div class="col-md-4">
+                                    <label class="form-label">
+                                        Descuentos de
+                                    </label>
+
+                                    <input type="number"
+                                           step="0.01"
+                                           class="form-control"
+                                           id="rpDescuento"
+                                           name="rpDescuento">
+                                </div>
+
+                                <!-- Modo descuento -->
+                                <div class="col-md-4">
+                                    <label class="form-label d-block">
+                                        Modo de descuento
+                                    </label>
+
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input"
+                                               type="checkbox"
+                                               id="rpModo"
+                                               name="rpModo">
+
+                                        <label class="form-check-label"
+                                               for="rpModo">
+                                            Activado
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <!-- Forma pago -->
+                                <div class="col-md-4">
+                                    <label class="form-label d-block">
+                                        Forma de pago
+                                    </label>
+
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input"
+                                               type="checkbox"
+                                               id="rpFormaDPago"
+                                               name="rpFormaDPago">
+
+                                        <label class="form-check-label"
+                                               for="rpFormaDPago">
+                                            Activado
+                                        </label>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <input type="hidden"
+                               id="ReportName"
+                               name="ReportName"
+                               value="@ViewData["NameReport"]" />
+
+                    </form>
+
+                </div>
+
+                <!-- FOOTER -->
+                <div class="modal-footer py-2">
+
+                    <button class="btn btn-sm btn-secondary"
+                            type="button"
+                            onclick="closeModal('modalTemporaryLoanRequest')">
+                        Cerrar
+                    </button>
+
+                    <button class="btn btn-sm btn-primary"
+                            type="button"
+                            onclick="submitReportData('modalTemporaryLoanRequest','formTemporaryLoanRequest')">
+                        Generar
+                    </button>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
 
 </body>
 </html>

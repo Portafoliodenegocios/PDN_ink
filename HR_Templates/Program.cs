@@ -49,9 +49,6 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
         string rawSecret = "esta es la clave para firmar el token y asi validar su integridad en la aplicaci�n cliente";
-
-        // Replicamos EXACTAMENTE lo que pusiste en el generador:
-        // System.Text.Encoding.UTF8.GetBytes(signingsecret.ToBase64())
         var secretWithBase64 = Convert.ToBase64String(Encoding.UTF8.GetBytes(rawSecret));
         var finalKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretWithBase64));
 
