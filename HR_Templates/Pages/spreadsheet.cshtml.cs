@@ -22,11 +22,25 @@ namespace HR_Templates.Pages
     [Route("[action]")]
     public class SpreadsheetModel : PageModel
     {
+        private readonly IWebHostEnvironment _env;
+
+        private readonly IConfiguration _configuration;
+
         [BindProperty(SupportsGet = true)]
         public string Name { get; set; }
 
         [BindProperty(SupportsGet = true)]
         public string Extension { get; set; }
+
+        [BindProperty(SupportsGet = true)]
+        public int Id { get; set; }
+        public string Token_ { get; set; }
+
+        public SpreadsheetModel(IWebHostEnvironment env, IConfiguration configuration)
+        {
+            _env = env;
+            _configuration = configuration;
+        }
 
         public void OnGet()
         {

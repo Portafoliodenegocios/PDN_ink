@@ -78,7 +78,7 @@ namespace HR_Templates.Pages
             if (Is_SSRS)
                return RedirectToPage("VisorReport", new { access_token = _token, id = Document_Option_Id });
             else 
-               return RedirectToPage("Spreadsheet", new { id = Document_Option_Id, Extension = "xlsx" });
+               return RedirectToPage("Spreadsheet", new { access_token = _token, id = Document_Option_Id });
 
        
                

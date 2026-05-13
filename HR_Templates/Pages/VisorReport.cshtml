@@ -1408,7 +1408,9 @@
         fetch("/VisorReport?handler=SaveSignature", {
         method: "POST",
         headers: { "Content-Type": "application/json" ,
-        "RequestVerificationToken": token
+        "Authorization": `Bearer ${T_o_k_e_n}`,
+        "RequestVerificationToken": document.querySelector('input[name="__RequestVerificationToken"]').value
+
         },
                                          
         body: JSON.stringify({

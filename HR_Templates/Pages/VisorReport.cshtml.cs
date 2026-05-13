@@ -678,22 +678,64 @@ namespace HR_Templates.Pages
             using (var fs = new FileStream(signedPdf, FileMode.Create))
             {
                 var stamper = new iTextSharp.text.pdf.PdfStamper(reader, fs);
+
                 int totalPages = reader.NumberOfPages;
-                var Imgsign = iTextSharp.text.Image.GetInstance(SignFile);
-                Imgsign.ScaleToFit(150f, 80f);
-                Imgsign.SetAbsolutePosition(30, 245);
 
-                //if (totalPages > 2)
-                //    nopagesdesc = 2;
+                var imgSign = iTextSharp.text.Image.GetInstance(SignFile);
 
-                var content = stamper.GetOverContent(1);
-                content.AddImage(Imgsign);
+                imgSign.ScaleToFit(150f, 80f);
+
+                if (signedPdf.Contains("rptPrivacyNotice_sign"))
+                {
+                    imgSign.SetAbsolutePosition(110, 360);
+                }
+                else if (signedPdf.Contains("rptAcceptanceScholarship_sign"))
+                {
+                    imgSign.SetAbsolutePosition(250, 455);
+                }
+                else
+                {
+                    imgSign.SetAbsolutePosition(30, 645);
+
+                }
+
+                // Última página
+                var content = stamper.GetOverContent(totalPages);
+
+                content.AddImage(imgSign);
+
                 stamper.FormFlattening = true;
 
                 stamper.Close();
                 reader.Close();
+
                 if (!System.IO.File.Exists(signedPdf))
                     throw new Exception("No se creó el archivo firmado físicamente.");
+                //var stamper = new iTextSharp.text.pdf.PdfStamper(reader, fs);
+                //int totalPages = reader.NumberOfPages;
+                //var Imgsign = iTextSharp.text.Image.GetInstance(SignFile);
+
+                //if (signedPdf.Contains("rptPrivacyNotice_sign"))
+                //{
+                //    Imgsign.ScaleToFit(150f, 80f);
+                //    Imgsign.SetAbsolutePosition(30, 30);
+                //}
+                //else
+                //{
+                //    Imgsign.ScaleToFit(150f, 80f);
+                //    Imgsign.SetAbsolutePosition(30, 645);
+                //}
+                ////if (totalPages > 2)
+                ////    nopagesdesc = 2;
+
+                //var content = stamper.GetOverContent(1);
+                //content.AddImage(Imgsign);
+                //stamper.FormFlattening = true;
+
+                //stamper.Close();
+                //reader.Close();
+                //if (!System.IO.File.Exists(signedPdf))
+                //    throw new Exception("No se creó el archivo firmado físicamente.");
             }
             return new JsonResult(new { success = true });
         }
